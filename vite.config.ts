@@ -31,14 +31,14 @@ export default defineConfig({
 
 				icons: [
 					{
-						src: '/logo/icon-192.png',
+						src: '/logo/icon-192x192.png',
 						sizes: '192x192',
 						type: 'image/png',
-						purpose: 'any maskable'
+						purpose: 'any'
 					},
 
 					{
-						src: '/logo/icon-512.png',
+						src: '/logo/icon-512x512.png',
 						sizes: '512x512',
 						type: 'image/png',
 						purpose: 'any maskable'
@@ -48,7 +48,10 @@ export default defineConfig({
 
 			// Service Worker 설정
 			injectManifest: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}']
+				swDest: 'service-worker.js', 
+				// globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}']
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest,wasm}',]
+				
 			},
 
 			// 개발 모드에서도 PWA 테스트

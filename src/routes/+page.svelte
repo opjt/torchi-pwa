@@ -31,6 +31,7 @@
     if (!('serviceWorker' in navigator)) {
       throw new Error('ServiceWorker 미지원 브라우저');
     }
+    // const reg = await navigator.serviceWorker.register('/service-worker.js',  );
     const reg = await navigator.serviceWorker.register('/service-worker.js',    { type: 'module' }  );
     await navigator.serviceWorker.ready;
     return reg;

@@ -3,76 +3,67 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { build, files, version } from '$service-worker';
+import { precacheAndRoute } from 'workbox-precaching'; 
 
-const sw = self as unknown as ServiceWorkerGlobalScope;
+type ManifestEntry = { url: string; revision: string | null; integrity?: string; };
+const DYNAMIC_CACHE_NAME = 'dynamic-cache-v1';
 
-// 캐시 이름
-const CACHE_NAME = `cache-${version}`;
+type CustomServiceWorkerGlobalScope = ServiceWorkerGlobalScope & { 
+  skipWaiting: () => void; 
+  clients: Clients; 
+};
+const sw = self as unknown as CustomServiceWorkerGlobalScope;
 
-// 캐시할 파일들 (SvelteKit 빌드 + static 파일)
-const ASSETS = [
-  ...build,
-  ...files
+
+const precache_list: Array<ManifestEntry> = [
+    ...((self as unknown as { __WB_MANIFEST: ManifestEntry[] }).__WB_MANIFEST || []), 
 ];
+precacheAndRoute(precache_list);
 
-// 1. 설치 이벤트 (Install)
-sw.addEventListener('install', (event) => {
+
+sw.addEventListener('install', () => {
   console.log('[SW] 서비스 워커 설치 중...');
   
-  async function addFilesToCache() {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(ASSETS);
-  }
-
-  event.waitUntil(addFilesToCache());
-  
-  // 대기 상태 없이 즉시 활성화 
   sw.skipWaiting();
 });
 
-// 2. 활성화 이벤트 (Activate)
+
 sw.addEventListener('activate', (event) => {
   console.log('[SW] 서비스 워커 활성화됨');
-
+  
+  // 동적 캐시 이름 정의 (Fetch 이벤트에서 사용)
+  
+  
   async function deleteOldCaches() {
     const keys = await caches.keys();
     for (const key of keys) {
-      if (key !== CACHE_NAME) {
+      
+      // Workbox 캐시와 현재 동적 캐시를 제외한 모든 것을 삭제합니다.
+      if (!key.startsWith('workbox-precache-') && key !== DYNAMIC_CACHE_NAME) {
         await caches.delete(key);
       }
     }
   }
 
   event.waitUntil(deleteOldCaches());
-  
-  // 즉시 클라이언트 제어권 획득 (참고 코드 반영)
   event.waitUntil(sw.clients.claim());
 });
 
-// 3. Fetch 이벤트 (SvelteKit 캐시 전략 유지)
+
 sw.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-
+  
+  
+  
   async function respond() {
+    const cache = await caches.open(DYNAMIC_CACHE_NAME);
     const url = new URL(event.request.url);
-    const cache = await caches.open(CACHE_NAME);
-
-    // A. 빌드 파일(ASSETS)은 캐시 우선
-    if (ASSETS.includes(url.pathname)) {
-      const cachedResponse = await cache.match(url.pathname);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-    }
-
-    // B. 그 외 요청은 네트워크 우선 -> 실패 시 캐시
+    
     try {
       const response = await fetch(event.request);
 
       if (response.status === 200 && url.protocol.startsWith('http')) {
-    
-        cache.put(event.request, response.clone());
+        cache.put(event.request, response.clone()); 
       }
 
       return response;
@@ -81,34 +72,34 @@ sw.addEventListener('fetch', (event) => {
       if (cachedResponse) {
         return cachedResponse;
       }
-
-      throw new Error('Network request failed and no cache available');
+      
+      return new Response(null, { status: 503, statusText: 'Service Unavailable' });
     }
   }
 
   event.respondWith(respond());
 });
 
-// 4. Push 알림 수신 (기능 강화)
+
 sw.addEventListener('push', (event) => {
   if (!event.data) return;
   
-
-  // 기본 데이터 설정
+  // 기본 데이터 설정 (이전 답변에서 누락된 url, tag, data 등을 추가하여 견고하게 만듦)
   let data = {
     title: '새로운 알림',
     body: '내용이 없습니다.',
     icon: '/logo/icon-192x192.png', 
     badge: '/logo/badge-72x72.png',
-    
+    url: '/', // 기본 URL
+    tag: 'default-tag',
+    data: {}
   };
 
   // 데이터 파싱 (JSON 파싱 실패 대비)
   try {
     const jsonData = event.data.json();
-    
     data = { ...data, ...jsonData };
-    console.log(data)
+    console.log('[SW] Push Data:', data);
   } catch (e) {
     console.log('Push 데이터가 JSON이 아닙니다. 텍스트로 처리합니다.', e);
     data.body = event.data.text();
@@ -118,8 +109,8 @@ sw.addEventListener('push', (event) => {
     body: data.body,
     icon: data.icon,
     badge: data.badge,
-    data:  {},
-    tag: 'default-tag',
+    data: { url: data.url, custom: data.data || {} }, // data 필드에 url 포함
+    tag: data.tag,
     
   };
 
@@ -128,29 +119,25 @@ sw.addEventListener('push', (event) => {
   );
 });
 
-// 5. 알림 클릭 이벤트 (액션 처리 포함)
+//  알림 클릭 이벤트 (액션 처리 포함)
 sw.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  // '닫기' 액션 클릭 시 아무 작업 안 함
   if (event.action === 'close') {
     return;
   }
 
-  const targetUrl = event.notification.data.url || '/';
+  // notification.data에서 url을 안전하게 추출
+  const targetUrl = event.notification.data?.url || '/';
 
   // 앱 열기 또는 포커스
   event.waitUntil(
     sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // 1. 이미 열린 창이 있고 URL이 일치하면 포커스
       for (const client of clientList) {
-        // base URL이 같은지 확인 (쿼리 파라미터 무시 등 유연하게 처리 가능)
         if (client.url.includes(sw.registration.scope) && 'focus' in client) {
-            // 필요하다면 여기서 client.navigate(targetUrl)로 페이지 이동도 가능
             return client.focus();
         }
       }
-      // 2. 열린 창이 없으면 새 창 열기
       if (sw.clients.openWindow) {
         return sw.clients.openWindow(targetUrl);
       }
@@ -158,15 +145,15 @@ sw.addEventListener('notificationclick', (event) => {
   );
 });
 
+//  백그라운드 동기화 (SyncEvent 타입 정의 및 핸들러)
 interface SyncEvent extends ExtendableEvent {
   tag: string;
   lastChance: boolean;
 }
-// 백그라운드 동기화 TODO: 백그라운드 동기화 구현
 sw.addEventListener('sync', (event) => {
   const syncEvent = event as SyncEvent;
     if (syncEvent.tag === 'sync-notifications') {
-        console.log('[SW] 백그라운드 동기화 실행');
+        console.log('[SW] 알림 동기화 실행');
         // event.waitUntil(doSomething()); 
     }
 });
