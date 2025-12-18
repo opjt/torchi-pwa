@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@plugin "daisyui";
+/* @plugin "daisyui/theme" {
+  name: "dark";
+  default: true;
+  --radius-field: 0.5rem;
+} */
+
+:root {
+  --radius-field: 0.5rem;
+}

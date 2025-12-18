@@ -13,7 +13,7 @@
   const VAPID_PUBLIC_KEY = 'BEi1kAUsyGhZpW2KkFUlteU9G0MYWG_mUoxIKDP427pUFzmsZVsvXBSY_vsk2WQ05Yl4nFQgOaK1KPN5SO4I3Dg';
 
   // API Base
-  const SERVER_URL = 'http://localhost:8080';
+  const SERVER_URL = 'http://localhost:25565';
 
   function showStatus(msg: string, type: typeof statusType) {
     statusMsg = msg;
@@ -59,7 +59,7 @@
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
 
-      const res = await fetch(`${SERVER_URL}/subscribe`, {
+      const res = await fetch(`${SERVER_URL}/push/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)
@@ -95,7 +95,7 @@
       const sub = await reg.pushManager.getSubscription();
       if (!sub) throw new Error('구독 정보 없음');
 
-      const res = await fetch(`${SERVER_URL}/push`, {
+      const res = await fetch(`${SERVER_URL}/push/push`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub)
