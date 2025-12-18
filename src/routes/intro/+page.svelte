@@ -16,6 +16,56 @@
 				가장 단순한 <span class="text-blue-600 font-semibold">Interactive Push</span> 도구
 			</p>
 		</div>
+		<div class="mt-10 space-y-4 w-full">
+			<div class="px-1 flex items-center justify-between">
+				<span class="font-bold text-slate-400 tracking-widest text-[11px] uppercase"
+					>Quick Test</span
+				>
+				<span class="badge badge-success badge-outline badge-xs font-bold text-[9px]">READY</span>
+			</div>
+
+			<div class="group relative">
+				<div class="top-2 left-3 absolute z-10">
+					<div class="gap-1 flex">
+						<span class="w-2 h-2 bg-red-400 rounded-full"></span>
+						<span class="w-2 h-2 bg-amber-400 rounded-full"></span>
+						<span class="w-2 h-2 bg-green-400 rounded-full"></span>
+					</div>
+				</div>
+
+				<div
+					class="bg-slate-900 rounded-2xl p-5 pt-7 font-mono shadow-2xl relative overflow-hidden text-left text-[13px]"
+				>
+					<div class="text-blue-400">curl <span class="text-slate-300">-X POST</span></div>
+					<div class="text-slate-300 break-all">"https://ohp.io/api/demo" \</div>
+					<div class="text-slate-300">
+						-d <span class="text-green-400">"msg=Hello OhP!"</span>
+					</div>
+
+					<button
+						on:click={() => {
+							/* 실제 알림 트리거 함수 */
+						}}
+						class="right-3 bottom-3 btn btn-primary btn-sm rounded-xl gap-2 shadow-lg absolute normal-case transition-transform hover:scale-105"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg
+						>
+						Run
+					</button>
+				</div>
+			</div>
+
+			<p class="text-slate-400 text-[11px]">Run 버튼을 누르면 브라우저 알림이 발송됩니다.</p>
+		</div>
 
 		<div class="mt-12 space-y-3 w-full">
 			<button
