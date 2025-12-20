@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { PUBLIC_SERVER_URL, PUBLIC_VAPID_KEY } from '$env/static/public';
 
 class PushNotificationManager {
+	isLoading = $state(true);
 	isSubscribed = $state(false);
 	subscription = $state<PushSubscription | null>(null);
 	permissionState = $state(browser ? Notification.permission : 'granted');
@@ -14,16 +15,38 @@ class PushNotificationManager {
 	private SERVER_URL = PUBLIC_SERVER_URL;
 
 	constructor() {
-		// 브라우저 환경에서만 초기 구독 정보 로드
 		if (browser) {
+			// 권한이 애초에 없으면 로딩할 필요도 없이 바로 false
+			if (Notification.permission !== 'granted') {
+				this.isLoading = false;
+				this.permissionState = Notification.permission;
+			}
 			this.init();
 			this.watchPermission();
 		}
 	}
 
 	private async init() {
-		if (!('PushManager' in window)) return;
-		await this.loadSubscription();
+		if (!browser || !('serviceWorker' in navigator)) {
+			this.isLoading = false;
+			return;
+		}
+
+		try {
+			// 1. 앱 시작 시 미리 서비스 워커 등록
+			await navigator.serviceWorker.register('/service-worker.js', { type: 'module' });
+
+			// 2. 서비스 워커가 준비될 때까지 기다림
+			await navigator.serviceWorker.ready;
+			console.log('Service Worker Ready');
+
+			// 3. 기존 구독 정보 확인
+			await this.loadSubscription();
+		} catch (e) {
+			console.error('서비스 워커 등록 실패:', e);
+		} finally {
+			this.isLoading = false;
+		}
 	}
 
 	// 핵심: 브라우저 권한 설정을 실시간으로 감시
@@ -72,18 +95,14 @@ class PushNotificationManager {
 		try {
 			this.showStatus('구독 중...', 'warning');
 
-			// 서비스 워커 등록
-			const reg = await navigator.serviceWorker.register('/service-worker.js', { type: 'module' });
-			await navigator.serviceWorker.ready;
+			const reg = await navigator.serviceWorker.ready;
 
 			const permission = await Notification.requestPermission();
 			if (permission !== 'granted') throw new Error('알림 권한 거부됨');
-
 			this.subscription = await reg.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY)
 			});
-
 			const res = await fetch(`${this.SERVER_URL}/push/subscribe`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },

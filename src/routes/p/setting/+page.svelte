@@ -103,53 +103,63 @@
 		<section>
 			<h2 class="font-bold mb-4 text-[11px] tracking-[0.2em] uppercase opacity-40">Preferences</h2>
 			<div class="bg-base-200/50 rounded-3xl p-2 border-base-content/5 gap-1 flex flex-col border">
-				<label
-					class="p-4 hover:bg-base-200 rounded-2xl flex cursor-pointer items-center justify-between transition-colors"
-				>
-					<div>
-						<p class="text-sm font-bold">푸시 알림 활성화</p>
-						<p class="text-[12px] opacity-50">
-							{push.permissionState === 'denied'
-								? '브라우저 설정에서 차단을 해제해주세요'
-								: '브라우저 알림 권한을 요청합니다'}
-						</p>
+				{#if push.isLoading}
+					<div class="p-4 animate-pulse flex items-center justify-between">
+						<div class="space-y-2">
+							<div class="h-4 w-24 bg-base-content/10 rounded"></div>
+							<div class="h-3 w-40 bg-base-content/5 rounded"></div>
+						</div>
+						<div class="h-6 w-12 bg-base-content/10 rounded-full"></div>
 					</div>
-					<input
-						type="checkbox"
-						class="toggle toggle-primary"
-						checked={push.isSubscribed}
-						onchange={handlePushToggle}
-						disabled={push.permissionState === 'denied'}
-					/>
-				</label>
-
-				{#if push.isSubscribed}
-					<button
-						onclick={() => push.testNotification()}
-						class="p-4 hover:bg-base-200 rounded-2xl group flex items-center justify-between text-left transition-all active:scale-[0.98]"
+				{:else}
+					<label
+						class="p-4 hover:bg-base-200 rounded-2xl flex cursor-pointer items-center justify-between transition-colors"
 					>
 						<div>
-							<p class="text-sm font-bold group-hover:text-primary transition-colors">
-								테스트 알림 발송
+							<p class="text-sm font-bold">푸시 알림 활성화</p>
+							<p class="text-[12px] opacity-50">
+								{push.permissionState === 'denied'
+									? '브라우저 설정에서 차단을 해제해주세요'
+									: '브라우저 알림 권한을 요청합니다'}
 							</p>
-							<p class="text-[12px] opacity-50">현재 기기로 테스트 푸시를 즉시 보냅니다</p>
 						</div>
-						<div class="text-primary opacity-50 transition-opacity group-hover:opacity-100">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="20"
-								height="20"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
-							</svg>
-						</div>
-					</button>
+						<input
+							type="checkbox"
+							class="toggle toggle-primary"
+							checked={push.isSubscribed}
+							onchange={handlePushToggle}
+							disabled={push.permissionState === 'denied'}
+						/>
+					</label>
+
+					{#if push.isSubscribed}
+						<button
+							onclick={() => push.testNotification()}
+							class="p-4 hover:bg-base-200 rounded-2xl group flex items-center justify-between text-left transition-all active:scale-[0.98]"
+						>
+							<div>
+								<p class="text-sm font-bold group-hover:text-primary transition-colors">
+									테스트 알림 발송
+								</p>
+								<p class="text-[12px] opacity-50">현재 기기로 테스트 푸시를 즉시 보냅니다</p>
+							</div>
+							<div class="text-primary opacity-50 transition-opacity group-hover:opacity-100">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+								</svg>
+							</div>
+						</button>
+					{/if}
 				{/if}
 			</div>
 
