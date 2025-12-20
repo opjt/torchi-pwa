@@ -47,9 +47,9 @@
 					class="bg-neutral text-neutral-content rounded-2xl p-5 pt-7 font-mono shadow-2xl relative overflow-hidden text-left text-[13px]"
 				>
 					<span class="text-info">curl</span><span class="">&nbsp;-X POST</span>
-					<div class="break-all opacity-90">"https://pook.io/api/demo" \</div>
+					<div class="break-all opacity-90">"https://ohp.io/api/demo" \</div>
 					<div>
-						-d <span class="text-success">"msg=Hello Pook!"</span>
+						-d <span class="text-success">"msg=Hello World!"</span>
 					</div>
 
 					<button
@@ -104,7 +104,7 @@
 
 	<footer class="py-4 mt-auto text-center">
 		<p class="text-[12px] opacity-40">
-			계속 진행함으로써 Pook의 <span class="cursor-pointer underline">이용약관</span>에 동의하게
+			계속 진행함으로써 OhP의 <span class="cursor-pointer underline">이용약관</span>에 동의하게
 			됩니다.
 		</p>
 	</footer>

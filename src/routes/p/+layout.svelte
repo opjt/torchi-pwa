@@ -5,7 +5,7 @@
 </script>
 
 <div>
-	{#if push.permissionState !== 'granted'}
+	{#if push.permissionState != null && push.permissionState !== 'granted'}
 		<button
 			type="button"
 			onclick={() => push.handleSubscribe()}

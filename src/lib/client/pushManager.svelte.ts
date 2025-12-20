@@ -5,7 +5,7 @@ class PushNotificationManager {
 	isLoading = $state(true);
 	isSubscribed = $state(false);
 	subscription = $state<PushSubscription | null>(null);
-	permissionState = $state(browser ? Notification.permission : 'granted');
+	permissionState = $state(browser ? Notification.permission : null);
 
 	statusMsg = $state('');
 	statusType = $state<'success' | 'error' | 'warning' | ''>('');
