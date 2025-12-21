@@ -2,6 +2,7 @@
 	import '$src/app.css';
 	import { goto } from '$app/navigation';
 	import { PUBLIC_VAPID_KEY } from '$env/static/public';
+	import { loginWithGithub } from '$lib/client/auth/github-auth';
 
 	const VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 
@@ -77,7 +78,7 @@
 
 		<div class="mt-12 space-y-3 w-full">
 			<button
-				on:click={() => goto('/auth/github')}
+				on:click={loginWithGithub}
 				class="btn btn-neutral h-14 rounded-2xl gap-3 flex w-full items-center justify-center border-none transition-all hover:opacity-90"
 			>
 				<svg
