@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$src/app.css';
 	import { push } from '$lib/client/pushManager.svelte';
+	import { logout } from '$lib/client/auth/lifecycle';
 
 	let pushEnabled = false;
 	let endpointUrl = 'https://pook.io/api/push/user_unique_id';
@@ -178,6 +179,7 @@
 
 		<section class="pt-6 space-y-6">
 			<button
+				onclick={logout}
 				class="btn btn-outline btn-error h-14 rounded-2xl font-bold w-full border-2 opacity-60 transition-all hover:opacity-100"
 			>
 				로그아웃
