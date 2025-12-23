@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { PUBLIC_VAPID_KEY } from '$env/static/public';
 	import { loginWithGithub } from '$lib/client/auth/github-auth';
+	import { Play } from 'lucide-svelte';
 
 	const VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 
@@ -57,17 +58,7 @@
 						on:click={handleSubscribe}
 						class="right-3 bottom-3 btn btn-primary btn-sm rounded-xl gap-2 shadow-lg absolute normal-case transition-transform hover:scale-105"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="14"
-							height="14"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg
-						>
+						<Play size={14} strokeWidth={2} />
 						Run
 					</button>
 				</div>

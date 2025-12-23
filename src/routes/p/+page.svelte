@@ -3,6 +3,7 @@
 	import { auth } from '$lib/stores/auth';
 	import { fade, slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import { ChevronDown, Settings, X } from 'lucide-svelte';
 
 	// 1. 서비스 목록
 	const myServices = [
@@ -105,20 +106,7 @@
 			onclick={() => goto('/p/setting')}
 			class="btn btn-square btn-ghost btn-sm rounded-xl opacity-40 transition-all hover:opacity-100"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				><circle cx="12" cy="12" r="3" /><path
-					d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-				/></svg
-			>
+			<Settings />
 		</button>
 	</header>
 
@@ -131,19 +119,10 @@
 				>
 					<span class="text-xs font-bold opacity-60">Filter:</span>
 					<span class="text-xs font-black text-primary">{currentFilterName}</span>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="14"
-						height="14"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
+					<ChevronDown
+						size={14}
 						class="opacity-40 transition-transform {isFilterOpen ? 'rotate-180' : ''}"
-						><path d="m6 9 6 6 6-6" /></svg
-					>
+					/>
 				</button>
 				{#if isFilterOpen}
 					<div
@@ -211,17 +190,7 @@
 									class="p-1 -mr-2 opacity-0 transition-opacity group-hover/card:opacity-40 hover:opacity-100!"
 									title="알림 삭제"
 								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="14"
-										height="14"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
-									>
+									<X size={16} />
 								</button>
 							</div>
 						</div>

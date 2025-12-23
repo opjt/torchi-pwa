@@ -4,6 +4,7 @@
 	import { logout } from '$lib/client/auth/lifecycle';
 	import { auth } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
+	import { ChevronLeft, Copy, Send } from 'lucide-svelte';
 
 	let endpointUrl = 'https://pook.io/api/push/user_unique_id';
 	let copySuccess = false;
@@ -33,17 +34,7 @@
 			class="p-2 -ml-2 mr-2 opacity-50 transition-opacity hover:opacity-100"
 			title="home"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2.5"
-				stroke-linecap="round"
-				stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
-			>
+			<ChevronLeft />
 		</button>
 		<h1 class="text-xl font-black tracking-tight">설정</h1>
 	</header>
@@ -88,20 +79,7 @@
 					onclick={copyToClipboard}
 					class="right-2 top-2 btn btn-square btn-ghost btn-sm text-primary hover:bg-primary/10 rounded-xl absolute"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="18"
-						height="18"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path
-							d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-						/></svg
-					>
+					<Copy />
 				</button>
 			</div>
 		</section>
@@ -150,19 +128,7 @@
 								<p class="text-[12px] opacity-50">현재 기기로 테스트 푸시를 즉시 보냅니다</p>
 							</div>
 							<div class="text-primary opacity-50 transition-opacity group-hover:opacity-100">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="20"
-									height="20"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2.5"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
-								</svg>
+								<Send size={22} />
 							</div>
 						</button>
 					{/if}
