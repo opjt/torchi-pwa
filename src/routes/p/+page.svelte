@@ -50,6 +50,14 @@
 			timestamp: '1시간 전',
 			isRead: true
 			// 액션이 없는 일반 알림
+		},
+		{
+			id: 4,
+			serviceId: 'svc_1',
+			body: '[Warning] CPU 사용률이 95% 이상 유지되고 있습니다. 로그 확인이 필요합니다.\n줄바꿈 테스트',
+			timestamp: '1시간 전',
+			isRead: true
+			// 액션이 없는 일반 알림
 		}
 	];
 
