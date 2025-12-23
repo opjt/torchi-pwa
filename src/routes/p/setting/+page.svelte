@@ -3,8 +3,8 @@
 	import { push } from '$lib/client/pushManager.svelte';
 	import { logout } from '$lib/client/auth/lifecycle';
 	import { auth } from '$lib/stores/auth';
+	import { goto } from '$app/navigation';
 
-	let pushEnabled = false;
 	let endpointUrl = 'https://pook.io/api/push/user_unique_id';
 	let copySuccess = false;
 
@@ -28,7 +28,11 @@
 
 <div class="bg-base-100 text-base-content font-sans flex min-h-screen flex-col">
 	<header class="px-6 py-6 top-0 bg-base-100/80 backdrop-blur-md sticky z-20 flex items-center">
-		<a class="p-2 -ml-2 mr-2 opacity-50 transition-opacity hover:opacity-100" href="/" title="home">
+		<button
+			onclick={() => goto('/p')}
+			class="p-2 -ml-2 mr-2 opacity-50 transition-opacity hover:opacity-100"
+			title="home"
+		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="24"
@@ -40,7 +44,7 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
 			>
-		</a>
+		</button>
 		<h1 class="text-xl font-black tracking-tight">설정</h1>
 	</header>
 
