@@ -1,15 +1,15 @@
 <script lang="ts">
-	import '$src/app.css';
-	import { push } from '$lib/client/pushManager.svelte';
-	import { logout } from '$lib/client/auth/lifecycle';
-	import { auth } from '$lib/stores/auth';
-	import { PUBLIC_SERVER_URL } from '$env/static/public';
 	import { goto } from '$app/navigation';
-	import { api, catchError } from '$lib/pkg/fetch';
-	import { ChevronLeft, Copy, Send, Plus, Trash2, Power, Bell, BellOff } from 'lucide-svelte';
-	import { slide } from 'svelte/transition';
+	import { PUBLIC_SERVER_URL } from '$env/static/public';
+	import { fetchEndpoints, deleteEndpoint, type Endpoint } from '$lib/api/endpoints';
+	import { logout } from '$lib/client/auth/lifecycle';
+	import { push } from '$lib/client/pushManager.svelte';
+	import { api } from '$lib/pkg/fetch';
+	import { auth } from '$lib/stores/auth';
+	import '$src/app.css';
+	import { Bell, BellOff, ChevronLeft, Copy, Plus, Trash2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { fetchEndpoints, type Endpoint } from '$lib/api/endpoints';
+	import { slide } from 'svelte/transition';
 
 	// Svelte 5 $state
 	let endpoints = $state<Endpoint[]>([]);
@@ -21,6 +21,10 @@
 	let error = $state<string | null>(null);
 
 	onMount(async () => {
+		await getEndpoints();
+	});
+
+	async function getEndpoints() {
 		try {
 			endpoints = await fetchEndpoints();
 		} catch {
@@ -28,18 +32,14 @@
 		} finally {
 			loading = false;
 		}
-	});
+	}
 
 	// 서비스 추가 핸들러
 	async function addService() {
 		if (!newServiceName.trim()) return;
 
-		// TODO: 백엔드 API 호출하여 새 서비스 생성
-		interface Result {
-			id: string;
-		}
 		try {
-			const res = await api<Result>(`${PUBLIC_SERVER_URL}/endpoints`, {
+			await api<void>(`${PUBLIC_SERVER_URL}/endpoints`, {
 				method: 'POST',
 				body: {
 					serviceName: newServiceName.trim()
@@ -48,22 +48,22 @@
 		} catch (e) {
 			console.error(e);
 		}
-
-		const newService = {
-			id: crypto.randomUUID(),
-			name: newServiceName,
-			token: `pook_${Math.random().toString(36).substr(2, 9)}`,
-			active: true
-		};
-
+		loading = true;
+		await getEndpoints();
 		newServiceName = '';
 		isAdding = false;
 	}
 
 	// 서비스 삭제 핸들러
-	function deleteService(id: string) {
+	async function deleteService(id: string) {
 		if (!confirm('정말 이 서비스를 삭제하시겠습니까?')) return;
-		// TODO: 백엔드 API 호출
+		try {
+			await deleteEndpoint(id);
+		} catch (e) {
+			console.error(e);
+		}
+
+		await getEndpoints();
 	}
 
 	// 서비스 토글 핸들러
@@ -274,7 +274,7 @@
 									{/if}
 								</button>
 								<button
-									onclick={() => deleteService(endpoint.id)}
+									onclick={() => deleteService(endpoint.token)}
 									class="btn btn-square btn-xs btn-ghost text-error/50 hover:bg-error/10 hover:text-error"
 									title="Delete"
 								>
@@ -287,11 +287,11 @@
 							<input
 								type="text"
 								readonly
-								value="https://pook.io/api/push/{endpoint.endpoint}"
+								value="https://pook.io/api/push/{endpoint.token}"
 								class="bg-base-100 rounded-xl pl-3 pr-10 py-2.5 font-mono border-base-content/5 w-full truncate border text-[10px] opacity-70 transition-opacity focus:opacity-100 focus:outline-none"
 							/>
 							<button
-								onclick={() => copyEndpoint(endpoint.endpoint, endpoint.id)}
+								onclick={() => copyEndpoint(endpoint.token, endpoint.id)}
 								class="right-1 top-1 btn btn-square btn-ghost btn-xs rounded-lg hover:bg-primary/10 hover:text-primary absolute"
 							>
 								{#if copiedId === endpoint.id}
