@@ -69,3 +69,14 @@ export async function api<TResponse, TBody = unknown>(
 
 	return json.data;
 }
+
+type Result<T, E = Error> = { ok: true; data: T } | { ok: false; error: E };
+
+export async function catchError<T>(promise: Promise<T>): Promise<Result<T>> {
+	try {
+		const data = await promise;
+		return { ok: true, data };
+	} catch (error) {
+		return { ok: false, error: error as Error };
+	}
+}

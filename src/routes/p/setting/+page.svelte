@@ -3,33 +3,52 @@
 	import { push } from '$lib/client/pushManager.svelte';
 	import { logout } from '$lib/client/auth/lifecycle';
 	import { auth } from '$lib/stores/auth';
+	import { PUBLIC_SERVER_URL } from '$env/static/public';
 	import { goto } from '$app/navigation';
+	import { api, catchError } from '$lib/pkg/fetch';
 	import { ChevronLeft, Copy, Send, Plus, Trash2, Power, Bell, BellOff } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
-
-	// UI 상태 관리를 위한 임시 데이터 구조 (실제로는 DB에서 불러와야 함)
-	type Service = {
-		id: string;
-		name: string;
-		token: string;
-		active: boolean;
-	};
+	import { onMount } from 'svelte';
+	import { fetchEndpoints, type Endpoint } from '$lib/api/endpoints';
 
 	// Svelte 5 $state
-	let services = $state<Service[]>([
-		{ id: '1', name: 'Github Actions', token: 'pook_gh_v8a9s8', active: true },
-		{ id: '2', name: 'Server Monitor', token: 'pook_srv_b7x2c1', active: false }
-	]);
+	let endpoints = $state<Endpoint[]>([]);
 
 	let isAdding = $state(false);
 	let newServiceName = $state('');
 	let copiedId: string | null = $state(null);
+	let loading = $state(true);
+	let error = $state<string | null>(null);
+
+	onMount(async () => {
+		try {
+			endpoints = await fetchEndpoints();
+		} catch {
+			error = 'Failed to fetch endpoints';
+		} finally {
+			loading = false;
+		}
+	});
 
 	// 서비스 추가 핸들러
-	function addService() {
+	async function addService() {
 		if (!newServiceName.trim()) return;
 
 		// TODO: 백엔드 API 호출하여 새 서비스 생성
+		interface Result {
+			id: string;
+		}
+		try {
+			const res = await api<Result>(`${PUBLIC_SERVER_URL}/endpoints`, {
+				method: 'POST',
+				body: {
+					serviceName: newServiceName.trim()
+				}
+			});
+		} catch (e) {
+			console.error(e);
+		}
+
 		const newService = {
 			id: crypto.randomUUID(),
 			name: newServiceName,
@@ -37,7 +56,6 @@
 			active: true
 		};
 
-		services = [...services, newService];
 		newServiceName = '';
 		isAdding = false;
 	}
@@ -46,15 +64,14 @@
 	function deleteService(id: string) {
 		if (!confirm('정말 이 서비스를 삭제하시겠습니까?')) return;
 		// TODO: 백엔드 API 호출
-		services = services.filter((s) => s.id !== id);
 	}
 
 	// 서비스 토글 핸들러
 	function toggleServiceActive(id: string) {
 		// TODO: 백엔드 API 호출 (알림 수신 여부 변경)
-		const idx = services.findIndex((s) => s.id === id);
+		const idx = endpoints.findIndex((s) => s.id === id);
 		if (idx !== -1) {
-			services[idx].active = !services[idx].active;
+			endpoints[idx].active = !endpoints[idx].active;
 		}
 	}
 
@@ -118,22 +135,71 @@
 				Global Settings
 			</h2>
 			<div class="bg-base-200/50 rounded-3xl p-2 border-base-content/5 gap-1 flex flex-col border">
-				<label
-					class="p-4 hover:bg-base-200 rounded-2xl flex cursor-pointer items-center justify-between transition-colors"
-				>
-					<div>
-						<p class="text-sm font-bold">마스터 푸시 알림</p>
-						<p class="text-[12px] opacity-50">모든 서비스의 알림을 제어합니다</p>
+				{#if push.isLoading}
+					<div class="p-4 animate-pulse flex items-center justify-between">
+						<div class="space-y-2">
+							<div class="h-4 w-24 bg-base-content/10 rounded"></div>
+							<div class="h-3 w-40 bg-base-content/5 rounded"></div>
+						</div>
+						<div class="h-6 w-12 bg-base-content/10 rounded-full"></div>
 					</div>
-					<input
-						type="checkbox"
-						class="toggle toggle-primary"
-						checked={push.isSubscribed}
-						onchange={handlePushToggle}
-						disabled={push.permissionState === 'denied'}
-					/>
-				</label>
+				{:else}
+					<label
+						class="p-4 hover:bg-base-200 rounded-2xl flex cursor-pointer items-center justify-between transition-colors"
+					>
+						<div>
+							<p class="text-sm font-bold">마스터 푸시 알림</p>
+							<p class="text-[12px] opacity-50">모든 서비스의 알림을 제어합니다</p>
+						</div>
+						<input
+							type="checkbox"
+							class="toggle toggle-primary"
+							checked={push.isSubscribed}
+							onchange={handlePushToggle}
+							disabled={push.permissionState === 'denied'}
+						/>
+					</label>
+					{#if push.isSubscribed}
+						<button
+							onclick={() => push.testNotification()}
+							class="p-4 hover:bg-base-200 rounded-2xl group flex items-center justify-between text-left transition-all active:scale-[0.98]"
+						>
+							<div>
+								<p class="text-sm font-bold group-hover:text-primary transition-colors">
+									테스트 알림 발송
+								</p>
+								<p class="text-[12px] opacity-50">현재 기기로 테스트 푸시를 즉시 보냅니다</p>
+							</div>
+							<div class="text-primary opacity-50 transition-opacity group-hover:opacity-100">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+								</svg>
+							</div>
+						</button>
+					{/if}
+				{/if}
 			</div>
+			{#if push.statusMsg}
+				<div class="px-4 mt-3">
+					<p
+						class="font-bold text-[11px] {push.statusType === 'error'
+							? 'text-error'
+							: 'text-primary'}"
+					>
+						{push.statusMsg}
+					</p>
+				</div>
+			{/if}
 		</section>
 
 		<section>
@@ -170,7 +236,7 @@
 					</div>
 				{/if}
 
-				{#if services.length === 0}
+				{#if endpoints.length === 0}
 					<div
 						class="py-8 text-xs bg-base-200/30 rounded-3xl border-base-content/10 border border-dashed text-center opacity-40"
 					>
@@ -178,37 +244,37 @@
 					</div>
 				{/if}
 
-				{#each services as service (service.id)}
+				{#each endpoints as endpoint (endpoint.id)}
 					<div
 						class="group bg-base-200/40 hover:bg-base-200/70 border-base-content/5 rounded-3xl p-4 relative overflow-hidden border transition-all"
 					>
 						<div class="mb-3 flex items-center justify-between">
 							<div class="gap-3 flex items-center">
 								<div
-									class="w-2 h-2 rounded-full {service.active
+									class="w-2 h-2 rounded-full {endpoint.active
 										? 'bg-success shadow-[0_0_8px_rgba(34,197,94,0.6)]'
 										: 'bg-base-content/20'}"
 								></div>
-								<span class="font-bold text-sm {service.active ? '' : 'opacity-50'}"
-									>{service.name}</span
+								<span class="font-bold text-sm {endpoint.active ? '' : 'opacity-50'}"
+									>{endpoint.name}</span
 								>
 							</div>
 							<div class="gap-1 flex items-center">
 								<button
-									onclick={() => toggleServiceActive(service.id)}
-									class="btn btn-square btn-xs btn-ghost {service.active
+									onclick={() => toggleServiceActive(endpoint.id)}
+									class="btn btn-square btn-xs btn-ghost {endpoint.active
 										? 'text-success'
 										: 'text-base-content/30'}"
-									title={service.active ? 'Active' : 'Paused'}
+									title={endpoint.active ? 'Active' : 'Paused'}
 								>
-									{#if service.active}
+									{#if endpoint.active}
 										<Bell size={14} />
 									{:else}
 										<BellOff size={14} />
 									{/if}
 								</button>
 								<button
-									onclick={() => deleteService(service.id)}
+									onclick={() => deleteService(endpoint.id)}
 									class="btn btn-square btn-xs btn-ghost text-error/50 hover:bg-error/10 hover:text-error"
 									title="Delete"
 								>
@@ -221,14 +287,14 @@
 							<input
 								type="text"
 								readonly
-								value="https://pook.io/api/push/{service.token}"
+								value="https://pook.io/api/push/{endpoint.endpoint}"
 								class="bg-base-100 rounded-xl pl-3 pr-10 py-2.5 font-mono border-base-content/5 w-full truncate border text-[10px] opacity-70 transition-opacity focus:opacity-100 focus:outline-none"
 							/>
 							<button
-								onclick={() => copyEndpoint(service.token, service.id)}
+								onclick={() => copyEndpoint(endpoint.endpoint, endpoint.id)}
 								class="right-1 top-1 btn btn-square btn-ghost btn-xs rounded-lg hover:bg-primary/10 hover:text-primary absolute"
 							>
-								{#if copiedId === service.id}
+								{#if copiedId === endpoint.id}
 									<span class="font-bold text-success text-[9px]">V</span>
 								{:else}
 									<Copy size={12} />

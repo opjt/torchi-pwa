@@ -3,10 +3,15 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth';
+	import { goto } from '$app/navigation';
 
-	onMount(() => {
-		auth.init();
+	onMount(async () => {
+		await auth.init();
+		if ($auth === null) {
+			goto('/');
+		}
 	});
+
 	let { children } = $props();
 </script>
 

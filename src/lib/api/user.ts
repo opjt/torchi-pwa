@@ -10,8 +10,7 @@ export async function fetchWhoami(): Promise<UserInfo | null> {
 		const res = await api<UserInfo>(`${PUBLIC_SERVER_URL}/users/whoami`);
 
 		return res;
-	} catch (err) {
-		console.error('API request error:', err);
+	} catch (_) {
 		return null;
 	}
 }
