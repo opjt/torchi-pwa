@@ -1,4 +1,4 @@
-import { PUBLIC_SERVER_URL } from '$env/static/public';
+import { PUBLIC_API_URL } from '$lib/config';
 import { api } from '$lib/pkg/fetch';
 export interface UserInfo {
 	user_id: string;
@@ -7,7 +7,7 @@ export interface UserInfo {
 
 export async function fetchWhoami(): Promise<UserInfo | null> {
 	try {
-		const res = await api<UserInfo>(`${PUBLIC_SERVER_URL}/users/whoami`);
+		const res = await api<UserInfo>(`${PUBLIC_API_URL}/users/whoami`);
 
 		return res;
 	} catch (_) {

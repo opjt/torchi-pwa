@@ -1,6 +1,13 @@
 import { browser } from '$app/environment';
-import { PUBLIC_SERVER_URL, PUBLIC_VAPID_KEY } from '$env/static/public';
+import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
 import { api } from '$lib/pkg/fetch';
+
+export type PushEvent =
+	| { type: 'subscribed' }
+	| { type: 'unsubscribed' }
+	| { type: 'permission-denied' }
+	| { type: 'subscribe-failed'; error: string }
+	| { type: 'unsubscribe-failed'; error: string };
 
 class PushNotificationManager {
 	isLoading = $state(true);
@@ -8,12 +15,21 @@ class PushNotificationManager {
 	subscription = $state<PushSubscription | null>(null);
 	permissionState = $state<NotificationPermission | null>(browser ? Notification.permission : null);
 
-	// 토스트 메시지용 상태
-	statusMsg = $state('');
-	statusType = $state<'success' | 'error' | 'warning' | ''>('');
-
 	private VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
-	private SERVER_URL = PUBLIC_SERVER_URL;
+	private SERVER_URL = PUBLIC_API_URL;
+
+	private events = $state<PushEvent[]>([]);
+
+	private emit(event: PushEvent) {
+		this.events = [...this.events, event];
+	}
+
+	consumeEvent(): PushEvent | null {
+		if (this.events.length === 0) return null;
+		const [head, ...rest] = this.events;
+		this.events = rest;
+		return head;
+	}
 
 	constructor() {
 		if (browser) {
@@ -73,13 +89,6 @@ class PushNotificationManager {
 		});
 	}
 
-	// 내부 유틸: 상태 메시지 표시
-	private showStatus(msg: string, type: typeof this.statusType) {
-		this.statusMsg = msg;
-		this.statusType = type;
-		// 메시지가 설정된 후 컴포넌트에서 $effect로 감지하여 토스트를 띄웁니다.
-	}
-
 	private urlBase64ToUint8Array(base64String: string) {
 		const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
 		const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -92,8 +101,6 @@ class PushNotificationManager {
 		let tempSub: PushSubscription | null = null;
 
 		try {
-			this.showStatus('권한 요청 및 구독 중...', 'warning');
-
 			const reg = await navigator.serviceWorker.ready;
 
 			// 1. 권한 요청
@@ -123,7 +130,7 @@ class PushNotificationManager {
 			// 4. 모든 과정 성공 시 상태 업데이트
 			this.subscription = tempSub;
 			this.isSubscribed = true;
-			this.showStatus('알림 구독이 완료되었습니다!', 'success');
+			this.emit({ type: 'subscribed' });
 		} catch (e) {
 			// 서버 등록 실패 시 브라우저 구독도 취소 (데이터 정합성 유지)
 			if (tempSub) {
@@ -133,8 +140,10 @@ class PushNotificationManager {
 			this.subscription = null;
 			this.isSubscribed = false;
 
-			const message = e instanceof Error ? e.message : '알 수 없는 오류';
-			this.showStatus(`구독 실패: ${message}`, 'error');
+			this.emit({
+				type: 'subscribe-failed',
+				error: e instanceof Error ? e.message : 'unknown error'
+			});
 		}
 	}
 
@@ -146,8 +155,6 @@ class PushNotificationManager {
 		const subToUnsubscribe = this.subscription; // 현재 구독 객체 캡처
 
 		try {
-			this.showStatus('구독 해제 중...', 'warning');
-
 			// 1. 서버에 먼저 알림 (Best Effort)
 			// 서버 실패가 브라우저 해제를 막으면 안 되므로 try-catch로 감싸거나,
 			// 실패하더라도 진행하도록 로직 구성
@@ -163,10 +170,12 @@ class PushNotificationManager {
 			// 2. 브라우저 구독 해제 (가장 중요)
 			await subToUnsubscribe.unsubscribe();
 
-			this.showStatus('구독이 해제되었습니다.', 'success');
+			this.emit({ type: 'unsubscribed' });
 		} catch (e) {
-			const message = e instanceof Error ? e.message : '알 수 없는 오류';
-			this.showStatus(`구독 해제 중 오류: ${message}`, 'error');
+			this.emit({
+				type: 'subscribe-failed',
+				error: e instanceof Error ? e.message : 'unknown error'
+			});
 		} finally {
 			// 3. 성공하든 실패하든 클라이언트 상태는 초기화 (사용자 입장에서 해제됨)
 			this.subscription = null;
@@ -189,25 +198,25 @@ class PushNotificationManager {
 		}
 	}
 
-	async testNotification() {
-		try {
-			if (!this.subscription) {
-				this.showStatus('구독 정보가 없습니다.', 'warning');
-				return;
-			}
+	// async testNotification() {
+	// 	try {
+	// 		if (!this.subscription) {
+	// 			this.showStatus('구독 정보가 없습니다.', 'warning');
+	// 			return;
+	// 		}
 
-			await api(`${this.SERVER_URL}/push/push`, {
-				method: 'POST',
-				// Content-Type 등은 api 유틸 내부 처리에 따름
-				body: { subscription: this.subscription.toJSON() } // 백엔드 DTO에 맞게 구조 조정 필요할 수 있음
-			});
+	// 		await api(`${this.SERVER_URL}/push/push`, {
+	// 			method: 'POST',
+	// 			// Content-Type 등은 api 유틸 내부 처리에 따름
+	// 			body: { subscription: this.subscription.toJSON() } // 백엔드 DTO에 맞게 구조 조정 필요할 수 있음
+	// 		});
 
-			this.showStatus('테스트 알림을 보냈습니다!', 'success');
-		} catch (e) {
-			const message = e instanceof Error ? e.message : '전송 실패';
-			this.showStatus(`테스트 실패: ${message}`, 'error');
-		}
-	}
+	// 		this.showStatus('테스트 알림을 보냈습니다!', 'success');
+	// 	} catch (e) {
+	// 		const message = e instanceof Error ? e.message : '전송 실패';
+	// 		this.showStatus(`테스트 실패: ${message}`, 'error');
+	// 	}
+	// }
 }
 
 export const push = new PushNotificationManager();

@@ -9,7 +9,7 @@
 	onMount(async () => {
 		await auth.init();
 		if (!$auth) {
-			goto('/');
+			// goto('/');
 		} else {
 			ready = true;
 		}

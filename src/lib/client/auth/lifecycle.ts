@@ -1,5 +1,5 @@
-import { PUBLIC_SERVER_URL } from '$env/static/public';
+import { PUBLIC_API_URL } from '$lib/config';
 
 export async function logout() {
-	window.location.href = `${PUBLIC_SERVER_URL}/auth/logout`;
+	window.location.href = `${PUBLIC_API_URL}/auth/logout`;
 }

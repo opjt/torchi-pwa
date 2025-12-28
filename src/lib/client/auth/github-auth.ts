@@ -1,4 +1,4 @@
-import { PUBLIC_GITHUB_CLIENT_ID } from '$env/static/public';
+import { PUBLIC_GITHUB_CLIENT_ID } from '$lib/config';
 
 export function loginWithGithub() {
 	const params = new URLSearchParams({
