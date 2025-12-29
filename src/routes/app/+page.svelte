@@ -61,17 +61,19 @@
 	];
 
 	let selectedServiceId: string | 'ALL' = 'ALL';
+	let showUnreadOnly = true; // 기본값을 true로 변경
 	let isFilterOpen = false;
 
-	$: filteredList =
-		selectedServiceId === 'ALL'
-			? notifications
-			: notifications.filter((n) => n.serviceId === selectedServiceId);
+	$: filteredList = notifications
+		.filter((n) => (selectedServiceId === 'ALL' ? true : n.serviceId === selectedServiceId))
+		.filter((n) => (showUnreadOnly ? !n.isRead : true));
 
 	$: currentFilterName =
 		selectedServiceId === 'ALL'
 			? '모든 서비스'
 			: myServices.find((s) => s.id === selectedServiceId)?.name || 'Unknown';
+
+	$: unreadCount = notifications.filter((n) => !n.isRead).length;
 
 	function getServiceInfo(id: string) {
 		return myServices.find((s) => s.id === id) || { name: 'Unknown', color: 'text-base-content' };
@@ -86,16 +88,16 @@
 		isFilterOpen = false;
 	}
 
-	// 알림 삭제 핸들러
-	function removeNotification(id: number) {
-		notifications = notifications.filter((n) => n.id !== id);
+	// 알림 읽음 처리 핸들러
+	function markAsRead(id: number) {
+		notifications = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
 	}
 
 	// 액션 버튼 클릭 핸들러 (예시)
 	function handleAction(notiId: number, actionType: string) {
 		console.log(`Notification ${notiId}: Action '${actionType}' clicked`);
-		// 실제 로직: API 호출 후 성공 시 알림 삭제 또는 상태 업데이트
-		removeNotification(notiId);
+		// 실제 로직: API 호출 후 성공 시 알림 읽음 처리
+		markAsRead(notiId);
 	}
 </script>
 
@@ -128,54 +130,79 @@
 
 	<main class="px-4 relative flex-1">
 		<div class="top-20 py-2 sticky z-20">
-			<div class="relative inline-block">
-				<button
-					onclick={toggleFilter}
-					class="btn h-10 gap-2 rounded-sm border-base-content/10 bg-base-100 pr-3 pl-4 shadow-xs btn-sm hover:border-primary hover:bg-base-100 flex items-center border transition-all"
-				>
-					<span class="text-xs font-bold opacity-60">Filter:</span>
-					<span class="text-xs font-black text-primary">{currentFilterName}</span>
-					<ChevronDown
-						size={14}
-						class="opacity-40 transition-transform {isFilterOpen ? 'rotate-180' : ''}"
-					/>
-				</button>
-				{#if isFilterOpen}
-					<div
-						transition:slide={{ duration: 150 }}
-						class="top-12 left-0 w-56 gap-1 rounded-2xl border-white/10 bg-base-100/95 p-1 shadow-xl backdrop-blur-xl absolute flex flex-col overflow-hidden border"
+			<div class="gap-2 flex items-center">
+				<!-- 서비스 필터 -->
+				<div class="relative inline-block">
+					<button
+						onclick={toggleFilter}
+						class="btn h-10 gap-2 rounded-sm border-base-content/10 bg-base-100 pr-3 pl-4 shadow-xs btn-sm hover:border-primary hover:bg-base-100 flex items-center border transition-all"
 					>
-						<button
-							onclick={() => selectFilter('ALL')}
-							class="rounded-xl px-4 py-3 text-xs font-bold hover:bg-white/5 flex items-center justify-between text-left transition-colors {selectedServiceId ===
-							'ALL'
-								? 'bg-primary/5 text-primary'
-								: 'opacity-60'}"
+						<span class="text-xs font-bold opacity-60">Filter:</span>
+						<span class="text-xs font-black text-primary">{currentFilterName}</span>
+						<ChevronDown
+							size={14}
+							class="opacity-40 transition-transform {isFilterOpen ? 'rotate-180' : ''}"
+						/>
+					</button>
+					{#if isFilterOpen}
+						<div
+							transition:slide={{ duration: 150 }}
+							class="top-12 left-0 w-56 gap-1 rounded-2xl border-white/10 bg-base-100/95 p-1 shadow-xl backdrop-blur-xl absolute flex flex-col overflow-hidden border"
 						>
-							모든 서비스
-							{#if selectedServiceId === 'ALL'}
-								<span class="h-1.5 w-1.5 bg-primary rounded-full"></span>
-							{/if}
-						</button>
-						<div class="mx-2 my-1 bg-white/5 h-px"></div>
-						{#each myServices as svc}
 							<button
-								onclick={() => selectFilter(svc.id)}
+								onclick={() => selectFilter('ALL')}
 								class="rounded-xl px-4 py-3 text-xs font-bold hover:bg-white/5 flex items-center justify-between text-left transition-colors {selectedServiceId ===
-								svc.id
+								'ALL'
 									? 'bg-primary/5 text-primary'
 									: 'opacity-60'}"
 							>
-								{svc.name}
-								{#if selectedServiceId === svc.id}
+								모든 서비스
+								{#if selectedServiceId === 'ALL'}
 									<span class="h-1.5 w-1.5 bg-primary rounded-full"></span>
 								{/if}
 							</button>
-						{/each}
-					</div>
-					<button title="close" class="inset-0 fixed z-[-1]" onclick={() => (isFilterOpen = false)}
-					></button>
-				{/if}
+							<div class="mx-2 my-1 bg-white/5 h-px"></div>
+							{#each myServices as svc}
+								<button
+									onclick={() => selectFilter(svc.id)}
+									class="rounded-xl px-4 py-3 text-xs font-bold hover:bg-base-content/5 flex items-center justify-between text-left transition-colors {selectedServiceId ===
+									svc.id
+										? 'bg-primary/5 text-primary'
+										: 'opacity-60'}"
+								>
+									{svc.name}
+									{#if selectedServiceId === svc.id}
+										<span class="h-1.5 w-1.5 bg-primary rounded-full"></span>
+									{/if}
+								</button>
+							{/each}
+						</div>
+						<button
+							title="close"
+							class="inset-0 fixed z-[-1]"
+							onclick={() => (isFilterOpen = false)}
+						></button>
+					{/if}
+				</div>
+
+				<!-- 전체보기 필터 토글 -->
+				<button
+					onclick={() => (showUnreadOnly = !showUnreadOnly)}
+					class="btn h-10 gap-2 rounded-sm border-base-content/10 bg-base-100 px-4 shadow-xs btn-sm hover:border-primary hover:bg-base-100 flex items-center border transition-all {!showUnreadOnly
+						? 'border-primary bg-primary/5'
+						: ''}"
+				>
+					<span class="text-xs font-bold {!showUnreadOnly ? 'text-primary' : 'opacity-60'}">
+						{showUnreadOnly ? '전체보기' : '읽지않음'}
+					</span>
+					{#if showUnreadOnly && unreadCount > 0}
+						<span
+							class="bg-primary text-primary-content px-2 py-0.5 font-bold rounded-full text-[10px]"
+						>
+							{unreadCount}
+						</span>
+					{/if}
+				</button>
 			</div>
 		</div>
 
@@ -183,36 +210,49 @@
 			{#each filteredList as noti (noti.id)}
 				<div transition:slide={{ duration: 200, axis: 'y' }}>
 					<div
-						class="group/card rounded-3xl bg-base-content/3 px-5 py-4 hover:border-base-content/5 hover:bg-base-content/5 relative border border-transparent transition-all"
+						class="group/card rounded-3xl px-5 py-4 relative border transition-all
+						{noti.isRead
+							? 'bg-base-content/2 hover:bg-base-content/3 border-transparent opacity-70'
+							: 'bg-base-content/5 hover:border-primary/30 hover:bg-base-content/8 shadow-sm border-base-content/10'}"
 					>
 						<div class="mb-2 flex items-center justify-between">
 							<div class="gap-2 flex items-center">
 								<div
 									class="h-1.5 w-1.5 rounded-full {noti.isRead
-										? 'bg-base-content/20'
-										: 'animate-pulse bg-primary'}"
+										? 'bg-base-content/15'
+										: 'animate-pulse bg-primary shadow-sm shadow-primary/50'}"
 								></div>
 								<span
-									class="font-bold text-[10px] opacity-60 {getServiceInfo(noti.serviceId).color}"
+									class="font-bold text-[10px] {noti.isRead
+										? 'opacity-40'
+										: 'opacity-70'} {getServiceInfo(noti.serviceId).color}"
 								>
 									{getServiceInfo(noti.serviceId).name}
 								</span>
 							</div>
 
 							<div class="gap-3 flex items-center">
-								<span class="font-mono text-[10px] opacity-30">{noti.timestamp}</span>
-								<button
-									onclick={() => removeNotification(noti.id)}
-									class="-mr-2 p-1 opacity-0 transition-opacity group-hover/card:opacity-40 hover:opacity-100!"
-									title="알림 삭제"
+								<span class="font-mono text-[10px] {noti.isRead ? 'opacity-20' : 'opacity-35'}"
+									>{noti.timestamp}</span
 								>
-									<X size={16} />
+								<button
+									onclick={() => markAsRead(noti.id)}
+									class="p-1.5 transition-all hover:opacity-100 active:scale-90 {noti.isRead
+										? 'cursor-default opacity-20'
+										: 'hover:text-primary opacity-50'}"
+									title={noti.isRead ? '읽음' : '읽음 처리'}
+									disabled={noti.isRead}
+								>
+									<X size={18} strokeWidth={2.5} />
 								</button>
 							</div>
 						</div>
 
 						<p
-							class="border-base-content/10 pl-3.5 leading-relaxed font-medium text-base-content/90 border-l text-[14px] whitespace-pre-wrap"
+							class="pl-3.5 leading-relaxed font-medium border-l text-[14px] whitespace-pre-wrap
+							{noti.isRead
+								? 'border-base-content/5 text-base-content/60'
+								: 'border-primary/30 text-base-content/95'}"
 						>
 							{noti.body}
 						</p>
