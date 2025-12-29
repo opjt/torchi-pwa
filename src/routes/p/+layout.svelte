@@ -9,7 +9,7 @@
 	onMount(async () => {
 		await auth.init();
 		if (!$auth) {
-			// goto('/');
+			goto('/');
 		} else {
 			ready = true;
 		}
@@ -18,7 +18,7 @@
 
 {#if !ready}
 	<!-- 로딩 상태 표시 -->
-	<div class="flex h-screen items-center justify-center"></div>
+	<div class="flex h-screen items-center justify-center">loading...</div>
 {:else}
 	<div class="flex h-screen flex-col">
 		{#if push.permissionState !== null && push.permissionState !== 'granted'}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { PUBLIC_VAPID_KEY } from '$lib/config';
+	import { PUBLIC_API_URL } from '$lib/config';
 	import { loginWithGithub } from '$lib/client/auth/github-auth';
 	import { Play } from 'lucide-svelte';
 
@@ -8,6 +9,11 @@
 
 	function handleSubscribe() {
 		console.log(VAPID_PUBLIC_KEY);
+	}
+
+	function loginOther() {
+		console.log('?');
+		window.location.href = `${PUBLIC_API_URL}/auth/fake/login`;
 	}
 </script>
 
@@ -86,7 +92,7 @@
 			</button>
 
 			<button
-				on:click={() => goto('/a/test')}
+				on:click={loginOther}
 				class="btn h-14 rounded-2xl btn-outline w-full opacity-70 transition-all hover:opacity-100"
 			>
 				<span class="font-semibold text-[15px]">다른 계정으로 로그인</span>

@@ -80,7 +80,7 @@ sw.addEventListener('push', (event) => {
 		title: '새로운 알림',
 		body: '내용이 없습니다.',
 		icon: '/logo/icon-192x192.png',
-		badge: '/logo/badge-72x72.png',
+		badge: '/logo/badge-96x96.png',
 		url: '/', // 기본 URL
 		tag: 'default-tag',
 		data: {}
