@@ -1,42 +1,77 @@
-import { writable, type Readable } from 'svelte/store';
+import { get, writable, derived, type Readable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { fetchWhoami, type UserInfo } from '$lib/api/user';
 
-// 1. 상태 타입 정의
 type AuthState = UserInfo | null | undefined;
 
-// 2. 스토어 전용 타입 정의 (Readable의 형식을 확실히 포함)
-type AuthStore = {
-	subscribe: Readable<AuthState>['subscribe']; // Readable의 subscribe 함수 타입을 그대로 가져옴
+type AuthStore = Readable<AuthState> & {
 	init: () => Promise<void>;
+	ready: Readable<boolean>;
 	logout: () => void;
+	isAuthenticated: () => boolean;
+	getUser: () => UserInfo | null;
+	whenReady: () => Promise<void>;
 };
 
 function createAuthStore(): AuthStore {
-	// 실제 스토어 생성
 	const { subscribe, set } = writable<AuthState>(undefined);
+	const readyStore = writable(false);
 
-	return {
-		subscribe, // 이제 여기서 'subscribe' 속성이 확실히 인식됩니다.
+	let readyResolve: (() => void) | null = null;
+	const readyPromise = new Promise<void>((resolve) => {
+		readyResolve = resolve;
+	});
+
+	const store: AuthStore = {
+		subscribe,
 
 		init: async () => {
-			if (!browser) return;
+			if (!browser) {
+				// SSR 환경에서는 즉시 완료
+				readyStore.set(true);
+				readyResolve?.();
+				return;
+			}
 
 			try {
-				const res = await fetchWhoami();
-				set(res);
-			} catch (err) {
-				console.error('Auth Init Error:', err);
+				const userInfo = await fetchWhoami();
+				set(userInfo);
+			} catch (error) {
+				console.error('Auth init failed:', error);
 				set(null);
+			} finally {
+				readyStore.set(true);
+				readyResolve?.();
 			}
 		},
 
+		ready: {
+			subscribe: readyStore.subscribe
+		},
+
+		isAuthenticated: () => {
+			const state = get({ subscribe });
+			return state !== null && state !== undefined;
+		},
+
+		getUser: () => {
+			const state = get({ subscribe });
+			return state !== null && state !== undefined ? state : null;
+		},
+
+		whenReady: () => readyPromise,
+
 		logout: () => {
 			set(null);
-			// SPA라면 로그아웃 후 메인으로 이동하는 로직을 넣기도 함
-			// if (browser) window.location.href = '/';
 		}
 	};
+
+	return store;
 }
 
 export const auth = createAuthStore();
+
+// 편의를 위한 derived stores
+export const isAuthenticated = derived(auth, ($auth) => {
+	return $auth !== null && $auth !== undefined;
+});

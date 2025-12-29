@@ -4,6 +4,8 @@
 	import { PUBLIC_API_URL } from '$lib/config';
 	import { loginWithGithub } from '$lib/client/auth/github-auth';
 	import { Play } from 'lucide-svelte';
+	import { onMount } from 'svelte';
+	import { auth } from '$lib/stores/auth';
 
 	const VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 
@@ -12,9 +14,14 @@
 	}
 
 	function loginOther() {
-		console.log('?');
 		window.location.href = `${PUBLIC_API_URL}/auth/fake/login`;
 	}
+	onMount(async () => {
+		await auth.whenReady();
+		if (auth.isAuthenticated()) {
+			goto('/app');
+		}
+	});
 </script>
 
 <div

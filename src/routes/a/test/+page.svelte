@@ -16,7 +16,7 @@
 		<Bell />11
 		<button
 			title="back"
-			onclick={() => goto('/p/services')}
+			onclick={() => goto('/app/services')}
 			class="p-2 -mr-2 text-slate-500 hover:text-black transition-colors"
 		>
 			<svg

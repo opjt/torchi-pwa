@@ -1,24 +1,23 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { auth } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
 	import { push } from '$lib/client/pushManager.svelte';
+	import { auth } from '$lib/stores/auth';
+	import { onMount } from 'svelte';
 
-	let ready = false;
+	const { ready } = auth;
 
 	onMount(async () => {
-		await auth.init();
-		if (!$auth) {
+		await auth.whenReady();
+		if (!auth.isAuthenticated()) {
 			goto('/');
-		} else {
-			ready = true;
 		}
 	});
 </script>
 
-{#if !ready}
-	<!-- 로딩 상태 표시 -->
-	<div class="flex h-screen items-center justify-center">loading...</div>
+{#if !$ready}
+	<div class="flex h-screen items-center justify-center">
+		<span class="loading loading-spinner loading-lg"></span>
+	</div>
 {:else}
 	<div class="flex h-screen flex-col">
 		{#if push.permissionState !== null && push.permissionState !== 'granted'}

@@ -138,7 +138,7 @@
 	>
 		<div class="flex items-center">
 			<button
-				onclick={() => goto('/p')}
+				onclick={() => goto('/app')}
 				class="mr-2 -ml-2 p-2 opacity-50 transition-opacity hover:opacity-100"
 				title="home"
 			>

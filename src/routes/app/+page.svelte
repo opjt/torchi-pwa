@@ -99,9 +99,9 @@
 	}
 </script>
 
-<div class="flex min-h-screen flex-col bg-base-100 font-sans text-base-content">
+<div class="bg-base-100 font-sans text-base-content flex min-h-screen flex-col">
 	<header
-		class="sticky top-0 z-30 flex items-center justify-between border-b border-base-content/10 bg-base-100/90 px-6 py-6 backdrop-blur-md"
+		class="top-0 border-base-content/10 bg-base-100/90 px-6 py-6 backdrop-blur-md sticky z-30 flex items-center justify-between border-b"
 	>
 		<div>
 			<h1 class="text-xl font-black tracking-tight">OhP</h1>
@@ -111,27 +111,27 @@
 		<div>
 			<!-- <button
 				title="setting "
-				onclick={() => goto('/p/services')}
+				onclick={() => goto('/app/services')}
 				class="btn btn-square btn-ghost btn-sm rounded-xl opacity-40 transition-all hover:opacity-100"
 			>
 				<Server />
 			</button> -->
 			<button
 				title="setting "
-				onclick={() => goto('/p/setting')}
-				class="btn btn-square rounded-xl opacity-40 btn-ghost transition-all btn-sm hover:opacity-100"
+				onclick={() => goto('/app/setting')}
+				class="btn btn-square rounded-xl btn-ghost btn-sm opacity-40 transition-all hover:opacity-100"
 			>
 				<Settings />
 			</button>
 		</div>
 	</header>
 
-	<main class="relative flex-1 px-4">
-		<div class="sticky top-20 z-20 py-2">
+	<main class="px-4 relative flex-1">
+		<div class="top-20 py-2 sticky z-20">
 			<div class="relative inline-block">
 				<button
 					onclick={toggleFilter}
-					class="btn flex h-10 items-center gap-2 rounded-sm border border-base-content/10 bg-base-100 pr-3 pl-4 shadow-xs transition-all btn-sm hover:border-primary hover:bg-base-100"
+					class="btn h-10 gap-2 rounded-sm border-base-content/10 bg-base-100 pr-3 pl-4 shadow-xs btn-sm hover:border-primary hover:bg-base-100 flex items-center border transition-all"
 				>
 					<span class="text-xs font-bold opacity-60">Filter:</span>
 					<span class="text-xs font-black text-primary">{currentFilterName}</span>
@@ -143,37 +143,37 @@
 				{#if isFilterOpen}
 					<div
 						transition:slide={{ duration: 150 }}
-						class="absolute top-12 left-0 flex w-56 flex-col gap-1 overflow-hidden rounded-2xl border border-white/10 bg-base-100/95 p-1 shadow-xl backdrop-blur-xl"
+						class="top-12 left-0 w-56 gap-1 rounded-2xl border-white/10 bg-base-100/95 p-1 shadow-xl backdrop-blur-xl absolute flex flex-col overflow-hidden border"
 					>
 						<button
 							onclick={() => selectFilter('ALL')}
-							class="flex items-center justify-between rounded-xl px-4 py-3 text-left text-xs font-bold transition-colors hover:bg-white/5 {selectedServiceId ===
+							class="rounded-xl px-4 py-3 text-xs font-bold hover:bg-white/5 flex items-center justify-between text-left transition-colors {selectedServiceId ===
 							'ALL'
 								? 'bg-primary/5 text-primary'
 								: 'opacity-60'}"
 						>
 							모든 서비스
 							{#if selectedServiceId === 'ALL'}
-								<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+								<span class="h-1.5 w-1.5 bg-primary rounded-full"></span>
 							{/if}
 						</button>
-						<div class="mx-2 my-1 h-px bg-white/5"></div>
+						<div class="mx-2 my-1 bg-white/5 h-px"></div>
 						{#each myServices as svc}
 							<button
 								onclick={() => selectFilter(svc.id)}
-								class="flex items-center justify-between rounded-xl px-4 py-3 text-left text-xs font-bold transition-colors hover:bg-white/5 {selectedServiceId ===
+								class="rounded-xl px-4 py-3 text-xs font-bold hover:bg-white/5 flex items-center justify-between text-left transition-colors {selectedServiceId ===
 								svc.id
 									? 'bg-primary/5 text-primary'
 									: 'opacity-60'}"
 							>
 								{svc.name}
 								{#if selectedServiceId === svc.id}
-									<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+									<span class="h-1.5 w-1.5 bg-primary rounded-full"></span>
 								{/if}
 							</button>
 						{/each}
 					</div>
-					<button title="close" class="fixed inset-0 z-[-1]" onclick={() => (isFilterOpen = false)}
+					<button title="close" class="inset-0 fixed z-[-1]" onclick={() => (isFilterOpen = false)}
 					></button>
 				{/if}
 			</div>
@@ -183,23 +183,23 @@
 			{#each filteredList as noti (noti.id)}
 				<div transition:slide={{ duration: 200, axis: 'y' }}>
 					<div
-						class="group/card relative rounded-3xl border border-transparent bg-base-content/3 px-5 py-4 transition-all hover:border-base-content/5 hover:bg-base-content/5"
+						class="group/card rounded-3xl bg-base-content/3 px-5 py-4 hover:border-base-content/5 hover:bg-base-content/5 relative border border-transparent transition-all"
 					>
 						<div class="mb-2 flex items-center justify-between">
-							<div class="flex items-center gap-2">
+							<div class="gap-2 flex items-center">
 								<div
 									class="h-1.5 w-1.5 rounded-full {noti.isRead
 										? 'bg-base-content/20'
 										: 'animate-pulse bg-primary'}"
 								></div>
 								<span
-									class="text-[10px] font-bold opacity-60 {getServiceInfo(noti.serviceId).color}"
+									class="font-bold text-[10px] opacity-60 {getServiceInfo(noti.serviceId).color}"
 								>
 									{getServiceInfo(noti.serviceId).name}
 								</span>
 							</div>
 
-							<div class="flex items-center gap-3">
+							<div class="gap-3 flex items-center">
 								<span class="font-mono text-[10px] opacity-30">{noti.timestamp}</span>
 								<button
 									onclick={() => removeNotification(noti.id)}
@@ -212,17 +212,17 @@
 						</div>
 
 						<p
-							class="border-l border-base-content/10 pl-3.5 text-[14px] leading-relaxed font-medium whitespace-pre-wrap text-base-content/90"
+							class="border-base-content/10 pl-3.5 leading-relaxed font-medium text-base-content/90 border-l text-[14px] whitespace-pre-wrap"
 						>
 							{noti.body}
 						</p>
 
 						{#if noti.actions && noti.actions.length > 0}
-							<div class="mt-4 flex gap-2 pl-3.5">
+							<div class="mt-4 gap-2 pl-3.5 flex">
 								{#each noti.actions as action}
 									<button
 										onclick={() => handleAction(noti.id, action.type)}
-										class="btn h-9 rounded-xl border-none px-4 text-xs font-bold transition-transform btn-sm active:scale-95
+										class="btn h-9 rounded-xl px-4 text-xs font-bold btn-sm border-none transition-transform active:scale-95
                                         {action.type === 'primary'
 											? 'bg-primary text-primary-content hover:bg-primary/90'
 											: ''}
