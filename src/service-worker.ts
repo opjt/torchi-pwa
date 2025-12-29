@@ -45,48 +45,31 @@ sw.addEventListener('activate', (event) => {
 });
 
 sw.addEventListener('fetch', (event) => {
-	event.respondWith(
-		fetch(event.request)
-			.then((response) => {
-				// 네트워크 응답이 성공하면 그대로 반환
-				return response;
-			})
-			.catch((error) => {
-				// 네트워크가 오프라인이거나 요청 실패 시 에러 핸들링
-				console.error('Fetch failed:', error);
+	if (event.request.method !== 'GET') return;
 
-				// 에러 발생 시 커스텀 응답을 주거나 그냥 에러를 던짐
-				return new Response('Network error occurred', {
-					status: 408,
-					headers: { 'Content-Type': 'text/plain' }
-				});
-			})
-	);
-	// if (event.request.method !== 'GET') return;
+	async function respond() {
+		const cache = await caches.open(DYNAMIC_CACHE_NAME);
+		const url = new URL(event.request.url);
 
-	// async function respond() {
-	// 	const cache = await caches.open(DYNAMIC_CACHE_NAME);
-	// 	const url = new URL(event.request.url);
+		try {
+			const response = await fetch(event.request);
 
-	// 	try {
-	// 		const response = await fetch(event.request);
+			if (response.status === 200 && url.protocol.startsWith('http')) {
+				cache.put(event.request, response.clone());
+			}
 
-	// 		if (response.status === 200 && url.protocol.startsWith('http')) {
-	// 			cache.put(event.request, response.clone());
-	// 		}
+			return response;
+		} catch {
+			const cachedResponse = await cache.match(event.request);
+			if (cachedResponse) {
+				return cachedResponse;
+			}
 
-	// 		return response;
-	// 	} catch {
-	// 		const cachedResponse = await cache.match(event.request);
-	// 		if (cachedResponse) {
-	// 			return cachedResponse;
-	// 		}
+			return new Response(null, { status: 503, statusText: 'Service Unavailable' });
+		}
+	}
 
-	// 		return new Response(null, { status: 503, statusText: 'Service Unavailable' });
-	// 	}
-	// }
-
-	// event.respondWith(respond());
+	event.respondWith(respond());
 });
 
 sw.addEventListener('push', (event) => {

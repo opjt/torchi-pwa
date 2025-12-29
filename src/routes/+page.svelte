@@ -86,7 +86,7 @@
 			</button>
 
 			<button
-				on:click={() => goto('/p')}
+				on:click={() => goto('/a/test')}
 				class="btn h-14 rounded-2xl btn-outline w-full opacity-70 transition-all hover:opacity-100"
 			>
 				<span class="font-semibold text-[15px]">다른 계정으로 로그인</span>

@@ -1,12 +1,24 @@
 <script>
+	import { goto } from '$app/navigation';
 	import '$src/app.css';
+	import { Bell } from 'lucide-svelte';
+	import { onMount } from 'svelte';
+	onMount(async () => {
+		setTimeout(async () => {
+			await console.log('onmopunt test1');
+		}, 0);
+	});
 </script>
 
 <div class="">
 	<header class="px-6 py-5 top-0 backdrop-blur-md sticky z-10 flex items-center justify-between">
 		<h1 class="text-xl font-bold tracking-tight">OhP</h1>
-
-		<a href="/setting" class="p-2 -mr-2 text-slate-500 hover:text-black transition-colors">
+		<Bell />11
+		<button
+			title="back"
+			onclick={() => goto('/p/services')}
+			class="p-2 -mr-2 text-slate-500 hover:text-black transition-colors"
+		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="22"
@@ -21,7 +33,7 @@
 					d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
 				/><circle cx="12" cy="12" r="3" /></svg
 			>
-		</a>
+		</button>
 	</header>
 	<main class="flex-1">
 		<section>

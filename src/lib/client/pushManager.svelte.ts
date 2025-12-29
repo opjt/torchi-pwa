@@ -13,7 +13,7 @@ class PushNotificationManager {
 	isLoading = $state(true);
 	isSubscribed = $state(false);
 	subscription = $state<PushSubscription | null>(null);
-	permissionState = $state<NotificationPermission | null>(browser ? Notification.permission : null);
+	permissionState = $state<NotificationPermission | null>(null);
 
 	private VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 	private SERVER_URL = PUBLIC_API_URL;
@@ -33,6 +33,8 @@ class PushNotificationManager {
 
 	constructor() {
 		if (browser) {
+			// 브라우저가 Notification 기능이 있을 경우만.
+			this.permissionState = 'Notification' in window ? Notification.permission : 'default';
 			this.init();
 			// 권한 변경 감시 시작
 			this.watchPermission();
@@ -41,7 +43,7 @@ class PushNotificationManager {
 
 	private async init() {
 		// 브라우저가 아니거나 SW를 지원하지 않으면 로딩 종료
-		if (!browser || !('serviceWorker' in navigator)) {
+		if (!browser || !('serviceWorker' in navigator) || !('Notification' in window)) {
 			this.isLoading = false;
 			return;
 		}
@@ -71,7 +73,7 @@ class PushNotificationManager {
 	}
 
 	private watchPermission() {
-		if (!browser || !('permissions' in navigator)) return;
+		if (!browser || !('permissions' in navigator) || !('Notification' in window)) return;
 
 		navigator.permissions.query({ name: 'notifications' }).then((status) => {
 			status.onchange = async () => {
@@ -98,6 +100,10 @@ class PushNotificationManager {
 
 	// 구독 로직
 	async handleSubscribe() {
+		if (!('Notification' in window)) {
+			this.emit({ type: 'subscribe-failed', error: '이 브라우저는 알림을 지원하지 않습니다.' });
+			return;
+		}
 		let tempSub: PushSubscription | null = null;
 
 		try {
@@ -184,6 +190,7 @@ class PushNotificationManager {
 	}
 
 	async loadSubscription() {
+		if (!browser || !('serviceWorker' in navigator) || !('Notification' in window)) return;
 		try {
 			const reg = await navigator.serviceWorker.ready;
 			const sub = await reg.pushManager.getSubscription();
