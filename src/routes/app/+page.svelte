@@ -188,14 +188,14 @@
 				<!-- 전체보기 필터 토글 -->
 				<button
 					onclick={() => (showUnreadOnly = !showUnreadOnly)}
-					class="btn h-10 gap-2 rounded-sm border-base-content/10 bg-base-100 px-4 shadow-xs btn-sm hover:border-primary hover:bg-base-100 flex items-center border transition-all {!showUnreadOnly
-						? 'border-primary bg-primary/5'
+					class="btn h-10 gap-2 rounded-sm border-base-content/10 bg-base-100 px-4 shadow-xs btn-sm hover:border-primary hover:bg-base-100 flex items-center transition-all {showUnreadOnly
+						? 'border-primary '
 						: ''}"
 				>
-					<span class="text-xs font-bold {!showUnreadOnly ? 'text-primary' : 'opacity-60'}">
-						{showUnreadOnly ? '전체보기' : '읽지않음'}
+					<span class="text-xs font-bold {showUnreadOnly ? 'text-primary' : 'opacity-60'}">
+						안읽음
 					</span>
-					{#if showUnreadOnly && unreadCount > 0}
+					{#if unreadCount > 0}
 						<span
 							class="bg-primary text-primary-content px-2 py-0.5 font-bold rounded-full text-[10px]"
 						>
@@ -213,7 +213,7 @@
 						class="group/card rounded-3xl px-5 py-4 relative border transition-all
 						{noti.isRead
 							? 'bg-base-content/2 hover:bg-base-content/3 border-transparent opacity-70'
-							: 'bg-base-content/5 hover:border-primary/30 hover:bg-base-content/8 shadow-sm border-base-content/10'}"
+							: 'bg-primary/12 hover:border-primary/30 hover:bg-primary/9 shadow-sm border-base-content/10'}"
 					>
 						<div class="mb-2 flex items-center justify-between">
 							<div class="gap-2 flex items-center">
