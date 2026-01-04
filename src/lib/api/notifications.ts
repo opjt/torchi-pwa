@@ -58,3 +58,11 @@ export async function getNotifications(cursor?: string): Promise<PaginatedNotiRe
 
 	return await api<PaginatedNotiResponse>(url.toString());
 }
+
+// 알림 읽음 처리
+export async function markAsReadUntil(lastId: string): Promise<void> {
+	await api(`${PUBLIC_API_URL}/notifications/read-until`, {
+		method: 'POST',
+		body: { last_id: lastId }
+	});
+}

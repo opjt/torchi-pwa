@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import {
 		getNotifications,
+		markAsReadUntil,
 		transformNotification,
 		type DisplayNotification
 	} from '$lib/api/notifications';
@@ -55,6 +56,10 @@
 
 			nextCursor = res.next_cursor;
 			hasMore = res.has_more;
+			if (newItems.length > 0) {
+				const lastIdOfBatch = newItems[newItems.length - 1].id;
+				await markAsReadUntil(lastIdOfBatch);
+			}
 			debugLog('Load success', { itemsCount: newItems.length, hasMore });
 		} catch (e) {
 			console.error('Failed:', e);
@@ -99,8 +104,12 @@
 		};
 	});
 
-	onMount(() => {
-		loadNotifications(true);
+	onMount(async () => {
+		try {
+			await loadNotifications(true);
+		} catch (e) {
+			console.error('Initial load failed:', e);
+		}
 	});
 	function toggleFilter() {
 		isFilterOpen = !isFilterOpen;
