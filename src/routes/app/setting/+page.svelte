@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { PUBLIC_API_URL } from '$lib/config';
-	import { fetchEndpoints, deleteEndpoint, type Endpoint } from '$lib/api/endpoints';
+	import {
+		fetchEndpoints,
+		deleteEndpoint,
+		type Endpoint,
+		unmuteEndpoint,
+		muteEndpoint
+	} from '$lib/api/endpoints';
 	import { logout } from '$lib/client/auth/lifecycle';
 	import { push } from '$lib/client/pushManager.svelte';
 	import { toast } from 'svelte-sonner';
@@ -90,18 +96,30 @@
 	}
 
 	// 서비스 토글 핸들러
-	function toggleServiceActive(id: string) {
-		return;
+	async function toggleServiceActive(id: string) {
 		// TODO: 백엔드 API 호출 (알림 수신 여부 변경)
 		const idx = endpoints.findIndex((s) => s.id === id);
-		if (idx !== -1) {
+		if (idx === -1) return;
+
+		let enable = endpoints[idx].active;
+		let token = endpoints[idx].token;
+		try {
+			if (enable) {
+				await muteEndpoint(token);
+			} else {
+				await unmuteEndpoint(token);
+			}
+
 			endpoints[idx].active = !endpoints[idx].active;
+		} catch (e) {
+			console.error(e);
+			// TODO: error 처리 toast
 		}
 	}
 
 	async function copyEndpoint(token: string, id: string) {
 		const url = `${PUBLIC_API_URL}/api/push/${token}`;
-		const curlCmd = `curl -X POST "${url}" -d "msg=Hello!"`;
+		const curlCmd = `curl "${url}" -d 'msg=Hello!'`;
 
 		await navigator.clipboard.writeText(curlCmd);
 		copiedId = id;

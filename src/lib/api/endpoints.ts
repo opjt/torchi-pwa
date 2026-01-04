@@ -13,10 +13,19 @@ export async function fetchEndpoints(): Promise<Endpoint[]> {
 }
 
 export async function deleteEndpoint(token: string): Promise<void> {
-	await api<void>(`${PUBLIC_API_URL}/endpoints`, {
-		method: 'DELETE',
-		body: {
-			token: token
-		}
+	await api<void>(`${PUBLIC_API_URL}/endpoints/${token}`, {
+		method: 'DELETE'
+	});
+}
+
+export async function muteEndpoint(token: string): Promise<void> {
+	await api<void>(`${PUBLIC_API_URL}/endpoints/${token}/mute`, {
+		method: 'POST'
+	});
+}
+
+export async function unmuteEndpoint(token: string): Promise<void> {
+	await api<void>(`${PUBLIC_API_URL}/endpoints/${token}/mute`, {
+		method: 'DELETE'
 	});
 }
