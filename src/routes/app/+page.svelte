@@ -9,7 +9,7 @@
 	} from '$lib/api/notifications';
 	import { debugLog } from '$lib/pkg/util';
 	import { auth } from '$lib/stores/auth';
-	import { ChevronDown, Settings, X } from 'lucide-svelte';
+	import { BellOff, ChevronDown, Settings, X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 
@@ -256,6 +256,11 @@
 							</div>
 
 							<div class="gap-3 flex items-center">
+								<span class="text-xs opacity-30">
+									{#if noti.isMute}
+										<BellOff size={14} />
+									{/if}
+								</span>
 								<span class="font-mono text-xs {noti.isRead ? 'opacity-20' : 'opacity-35'}"
 									>{noti.timestamp}</span
 								>

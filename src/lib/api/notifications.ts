@@ -8,6 +8,7 @@ export interface NotificationApiResponse {
 	body: string;
 	is_read: boolean;
 	created_at: string;
+	mute: boolean;
 }
 
 export interface PaginatedNotiResponse {
@@ -23,6 +24,7 @@ export interface DisplayNotification {
 	isRead: boolean;
 	timestamp: string;
 	createdAt: string;
+	isMute: boolean;
 }
 
 function formatTimestamp(dateString: string): string {
@@ -46,7 +48,8 @@ export function transformNotification(apiData: NotificationApiResponse): Display
 		body: apiData.body,
 		isRead: apiData.is_read,
 		timestamp: formatTimestamp(apiData.created_at),
-		createdAt: apiData.created_at
+		createdAt: apiData.created_at,
+		isMute: apiData.mute
 	};
 }
 
