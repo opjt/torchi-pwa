@@ -227,14 +227,14 @@
 						<span class="shrink-0">•</span>
 						<span>
 							<span class="font-bold opacity-100">책임자:</span>
-							<span class="font-mono text-sm">[개발자님 성함 또는 닉네임]</span>
+							<span class="font-mono text-sm">박정태</span>
 						</span>
 					</li>
 					<li class="gap-2 flex">
 						<span class="shrink-0">•</span>
 						<span>
 							<span class="font-bold opacity-100">이메일:</span>
-							<span class="font-mono text-sm">[실제 연락 가능한 이메일 주소]</span>
+							<span class="font-mono text-sm">jtpark1957@gmail.com</span>
 						</span>
 					</li>
 				</ul>
@@ -242,10 +242,10 @@
 		</div>
 
 		<!-- 하단 안내 -->
-		<div class="mt-12 rounded-3xl border-base-content/5 bg-base-200/40 p-6 border text-center">
+		<!-- <div class="mt-12 rounded-3xl border-base-content/5 bg-base-200/40 p-6 border text-center">
 			<p class="text-sm opacity-60">
 				개인정보 관련 문의사항이 있으시면 위 개인정보보호책임자에게 연락해주세요.
 			</p>
-		</div>
+		</div> -->
 	</main>
 </div>

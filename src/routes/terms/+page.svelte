@@ -121,8 +121,8 @@
 		</div>
 
 		<!-- 하단 안내 -->
-		<div class="mt-12 rounded-3xl border-base-content/5 bg-base-200/40 p-6 border text-center">
+		<!-- <div class="mt-12 rounded-3xl border-base-content/5 bg-base-200/40 p-6 border text-center">
 			<p class="text-sm opacity-60">문의사항이 있으시면 설정 페이지에서 피드백을 남겨주세요.</p>
-		</div>
+		</div> -->
 	</main>
 </div>
