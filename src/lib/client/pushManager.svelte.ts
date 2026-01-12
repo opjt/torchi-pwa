@@ -8,7 +8,8 @@ export type PushEvent =
 	| { type: 'unsubscribed' }
 	| { type: 'permission-denied' }
 	| { type: 'subscribe-failed'; error: string }
-	| { type: 'unsubscribe-failed'; error: string };
+	| { type: 'unsubscribe-failed'; error: string }
+	| { type: 'demo-failed'; error: string };
 
 class PushNotificationManager {
 	isLoading = $state(true);
@@ -224,6 +225,78 @@ class PushNotificationManager {
 			});
 		} catch (_) {
 			toast.error('테스트 푸시 실패.');
+		}
+	}
+
+	async handleDemoPush() {
+		if (!browser || !('Notification' in window) || !('serviceWorker' in navigator)) {
+			console.log('지원되지 않는 브라우저');
+			// TODO(pjt): 전역 토스트 핸들러 추가 필요
+			return;
+		}
+
+		this.isToggling = true;
+		let tempSub: PushSubscription | null = null;
+		let isNewSubscription = false; // 이번에 새로 만들었는지 여부 확인
+
+		try {
+			const reg = await navigator.serviceWorker.ready;
+
+			// 1. 권한 요청
+			const permission = await Notification.requestPermission();
+			this.permissionState = permission;
+
+			if (permission !== 'granted') {
+				console.log('[PushManager] Permission denied');
+				this.emit({ type: 'permission-denied' });
+				return;
+			}
+
+			// 2. 구독 정보 확인 및 생성
+			// 기존에 구독된 게 있는지 먼저 확인
+			tempSub = await reg.pushManager.getSubscription();
+
+			if (!tempSub) {
+				// 기존 구독이 없을 때만 새로 생성하고, '새로 만들었다'고 표시
+				tempSub = await reg.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY)
+				});
+				isNewSubscription = true;
+			}
+
+			// 3. 데모 전용 엔드포인트 호출
+			const subJson = tempSub.toJSON();
+
+			await api<void>(`${this.SERVER_URL}/api/push-demo`, {
+				method: 'POST',
+				body: {
+					endpoint: subJson.endpoint,
+					auth: subJson.keys?.auth,
+					p256dh: subJson.keys?.p256dh,
+					message: '짜잔형이야'
+				}
+			});
+		} catch (e) {
+			// 에러가 났는데, 만약 이번에 새로 만든 임시 구독이었다면 즉시 삭제
+			if (tempSub && isNewSubscription) {
+				await tempSub.unsubscribe().catch(() => {});
+			}
+			console.log(e);
+
+			this.emit({
+				type: 'demo-failed',
+				error: e instanceof Error ? e.message : 'unknown error'
+			});
+		} finally {
+			// 기존 유저(이미 구독한 유저)가 데모를 눌렀을 때는 구독을 유지해야 합니다.
+			if (tempSub && isNewSubscription) {
+				setTimeout(() => {
+					tempSub?.unsubscribe().catch(() => {});
+				}, 3000);
+			}
+
+			this.isToggling = false;
 		}
 	}
 }

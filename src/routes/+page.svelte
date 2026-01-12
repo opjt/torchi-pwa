@@ -7,6 +7,7 @@
 	import { fly } from 'svelte/transition';
 	// 애니메이션 추가
 	import { fakeLogin } from '$lib/client/auth/lifecycle';
+	import { push } from '$lib/client/pushManager.svelte';
 
 	const VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 
@@ -17,8 +18,8 @@
 
 	let isWebContext = true;
 
-	function handleSubscribe() {
-		console.log(VAPID_PUBLIC_KEY);
+	async function handleSubscribe() {
+		await push.handleDemoPush();
 	}
 
 	function loginOther() {
@@ -120,9 +121,9 @@
 					class="rounded-2xl bg-neutral p-5 pt-7 font-mono text-neutral-content shadow-2xl relative overflow-hidden text-left text-[13px]"
 				>
 					<span class="text-info">curl</span><span class="">&nbsp;-X POST</span>
-					<div class="break-all opacity-90">"https://ohp.io/api/demo" \</div>
+					<div class="break-all opacity-90">"{PUBLIC_API_URL}/api/demo" \</div>
 					<div>
-						-d <span class="text-success">"msg=Hello World!"</span>
+						-d <span class="text-success">'Hello World!'</span>
 					</div>
 
 					<button
