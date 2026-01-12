@@ -9,12 +9,10 @@
 
 	onMount(async () => {
 		// 1. 인증 초기화
-		await auth.init();
-
+		// await auth.init();
 		// // 2. 서비스 워커 업데이트 감지 및 새로고침 로직
 		// if ('serviceWorker' in navigator) {
 		// 	let refreshing = false;
-
 		// 	// 새로운 서비스 워커가 제어권을 가졌을 때 발생
 		// 	navigator.serviceWorker.addEventListener('controllerchange', () => {
 		// 		if (refreshing) return;

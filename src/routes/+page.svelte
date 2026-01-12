@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { PUBLIC_VAPID_KEY } from '$lib/config';
-	import { PUBLIC_API_URL } from '$lib/config';
 	import { loginWithGithub } from '$lib/client/auth/github-auth';
-	import { Play, X, Share, SquarePlus } from 'lucide-svelte'; // 아이콘 추가
+	import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
+	import { Play, Share, SquarePlus, X } from 'lucide-svelte';
+	// 아이콘 추가
 	import { onMount } from 'svelte';
-	import { fly } from 'svelte/transition'; // 애니메이션 추가
-	import { auth } from '$lib/stores/auth';
+	import { fly } from 'svelte/transition';
+	// 애니메이션 추가
+	import { fakeLogin } from '$lib/client/auth/lifecycle';
 
 	const VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 
@@ -76,10 +76,10 @@
 			}
 		});
 
-		await auth.whenReady();
-		if (auth.isAuthenticated()) {
-			goto('/app');
-		}
+		// await auth.whenReady();
+		// if (auth.isAuthenticated()) {
+		// 	goto('/app');
+		// }
 	});
 </script>
 
@@ -158,7 +158,7 @@
 			</button>
 
 			<button
-				on:click={loginOther}
+				on:click={fakeLogin}
 				class="btn h-14 rounded-2xl btn-outline w-full opacity-70 transition-all hover:opacity-100"
 			>
 				<span class="font-semibold text-[15px]">다른 계정으로 로그인</span>

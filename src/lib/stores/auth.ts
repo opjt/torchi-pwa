@@ -56,7 +56,8 @@ function createAuthStore(): AuthStore {
 			const state = get({ subscribe });
 			return state?.terms_agreed ?? false;
 		},
-		whenReady: () => readyPromise,
+
+		whenReady: () => readyPromise, // init 함수 대기
 
 		logout: () => {
 			set(null);

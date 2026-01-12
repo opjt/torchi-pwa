@@ -10,8 +10,9 @@
 	const { ready } = auth;
 	let shouldShowContent = $state(false);
 
-	onMount(() => {
-		auth.whenReady();
+	onMount(async () => {
+		await auth.init();
+		await auth.whenReady();
 	});
 
 	// 경로나 인증 상태가 바뀔 때마다 체크
