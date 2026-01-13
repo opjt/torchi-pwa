@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { loginWithGithub } from '$lib/client/auth/github-auth';
-	import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
-	import { Play, Share, SquarePlus, X } from 'lucide-svelte';
+	import { PUBLIC_API_URL } from '$lib/config';
+	import { Loader2, LoaderCircle, Play, Share, SquarePlus, X } from 'lucide-svelte';
 	// 아이콘 추가
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	// 애니메이션 추가
 	import { fakeLogin } from '$lib/client/auth/lifecycle';
 	import { push } from '$lib/client/pushManager.svelte';
-
-	const VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 
 	// PWA 설치 관련 변수
 	let deferredPrompt: any;
@@ -20,10 +18,6 @@
 
 	async function handleSubscribe() {
 		await push.handleDemoPush();
-	}
-
-	function loginOther() {
-		window.location.href = `${PUBLIC_API_URL}/auth/fake/login`;
 	}
 
 	// PWA 설치 함수
@@ -105,7 +99,7 @@
 		<div class="mt-10 space-y-4 w-full">
 			<div class="px-1 flex items-center justify-between">
 				<span class="font-bold tracking-widest text-[11px] uppercase opacity-50">Quick Test</span>
-				<span class="badge badge-outline badge-xs font-bold badge-success text-[9px]">READY</span>
+				<!-- <span class="badge badge-outline badge-xs font-bold badge-success text-[9px]">READY</span> -->
 			</div>
 
 			<div class="group relative">
@@ -128,10 +122,16 @@
 
 					<button
 						on:click={handleSubscribe}
+						disabled={push.isToggling}
 						class="btn right-3 bottom-3 gap-2 rounded-xl shadow-lg btn-sm btn-primary absolute normal-case transition-transform hover:scale-105"
 					>
-						<Play size={14} strokeWidth={2} />
-						Run
+						{#if push.isToggling}
+							<LoaderCircle size={14} class="animate-spin" />
+							Run
+						{:else}
+							<Play size={14} strokeWidth={2} />
+							Run
+						{/if}
 					</button>
 				</div>
 			</div>

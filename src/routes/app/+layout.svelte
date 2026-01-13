@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { push } from '$lib/client/pushManager.svelte';
-	import { auth, hasAgreedToTerms } from '$lib/stores/auth';
+	import { auth, hasAgreedToTerms } from '$lib/client/auth/auth';
 	import { onMount } from 'svelte';
 
 	let { children } = $props();

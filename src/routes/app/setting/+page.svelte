@@ -12,7 +12,7 @@
 	import { push } from '$lib/client/pushManager.svelte';
 	import { toast } from 'svelte-sonner';
 	import { api } from '$lib/pkg/fetch';
-	import { auth } from '$lib/stores/auth';
+	import { auth } from '$lib/client/auth/auth';
 
 	import { Bell, BellOff, ChevronLeft, Copy, Plus, Trash2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';

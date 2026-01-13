@@ -288,6 +288,7 @@ class PushNotificationManager {
 				type: 'demo-failed',
 				error: e instanceof Error ? e.message : 'unknown error'
 			});
+			toast.error('push failed'); // TODO(pjt): 메세지 수정
 		} finally {
 			// 기존 유저(이미 구독한 유저)가 데모를 눌렀을 때는 구독을 유지해야 합니다.
 			if (tempSub && isNewSubscription) {

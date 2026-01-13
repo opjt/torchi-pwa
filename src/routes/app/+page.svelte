@@ -9,7 +9,7 @@
 		type DisplayNotification
 	} from '$lib/api/notifications';
 	import { debugLog } from '$lib/pkg/util';
-	import { auth } from '$lib/stores/auth';
+	import { auth } from '$lib/client/auth/auth';
 	import { BellOff, ChevronDown, Settings, X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { slide } from 'svelte/transition';

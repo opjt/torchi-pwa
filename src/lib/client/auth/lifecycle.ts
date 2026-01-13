@@ -2,7 +2,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import { PUBLIC_API_URL } from '$lib/config';
 import { api } from '$lib/pkg/fetch';
-import { auth } from '$lib/stores/auth';
+import { auth } from '$lib/client/auth/auth';
 
 export async function logout() {
 	await api<void>(`${PUBLIC_API_URL}/auth/logout`);

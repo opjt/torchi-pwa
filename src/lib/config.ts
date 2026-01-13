@@ -1,4 +1,5 @@
 import * as staticEnv from '$env/static/public';
+import { debugLog } from './pkg/util';
 
 // 전역 타입 선언
 declare global {
@@ -36,5 +37,5 @@ export const PUBLIC_GITHUB_CLIENT_ID = config.githubClientId;
 
 // 개발 환경에서만 로그
 if (import.meta.env.DEV) {
-	console.log('앱 설정:', config);
+	debugLog('앱 설정:', config);
 }

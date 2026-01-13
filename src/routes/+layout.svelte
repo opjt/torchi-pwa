@@ -3,7 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { Toaster } from '$lib/components/ui/sonner/index';
 	import { onMount } from 'svelte';
-	import { auth } from '$lib/stores/auth';
+	import { auth } from '$lib/client/auth/auth';
 
 	let { children } = $props();
 

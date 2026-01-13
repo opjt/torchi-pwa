@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { agreeToTerms } from '$lib/api/user';
-	import { auth } from '$lib/stores/auth';
+	import { auth } from '$lib/client/auth/auth';
 	import { Check } from 'lucide-svelte';
 
 	let agreed = $state(false);
