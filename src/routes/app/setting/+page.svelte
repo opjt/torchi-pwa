@@ -94,7 +94,6 @@
 
 	// 서비스 토글 핸들러
 	async function toggleServiceActive(id: string) {
-		// TODO: 백엔드 API 호출 (알림 수신 여부 변경)
 		const idx = endpoints.findIndex((s) => s.id === id);
 		if (idx === -1) return;
 

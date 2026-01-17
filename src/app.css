@@ -14,9 +14,12 @@
 	--radius-field: 0.5rem;
 }
 [data-sonner-toast] {
-	--normal-text: var(--color-base-content) !important;
-	--normal-bg: var(--color-base-200) !important;
-	/* box-shadow: none !important; */
+	--normal-text: var(--color-base-200) !important;
+	--normal-bg: var(--color-base-content) !important;
+
+	box-shadow: none !important;
+	--front-toast-shadow: none !important;
+	--stacked-toast-shadow: none !important;
 }
 
 @theme inline {
