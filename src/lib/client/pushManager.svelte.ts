@@ -1,7 +1,6 @@
 import { browser } from '$app/environment';
 import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
-import { api } from '$lib/pkg/fetch';
-import { toast } from 'svelte-sonner';
+import { api, catchError } from '$lib/pkg/fetch';
 
 export type PushEvent =
 	| { type: 'subscribed' }
@@ -61,7 +60,7 @@ class PushNotificationManager {
 			// 1. 서비스 워커 등록
 			await navigator.serviceWorker.register('/service-worker.js', {
 				type: 'module',
-				scope: '/'
+				scope: '/',
 			});
 			await navigator.serviceWorker.ready;
 			console.log('[PushManager] Service Worker Ready');
@@ -124,7 +123,7 @@ class PushNotificationManager {
 			if (!tempSub) {
 				tempSub = await reg.pushManager.subscribe({
 					userVisibleOnly: true,
-					applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY)
+					applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY),
 				});
 			}
 
@@ -134,7 +133,7 @@ class PushNotificationManager {
 			await api<void>(`${this.SERVER_URL}/subscriptions`, {
 				// 엔드포인트 이름 통일 권장
 				method: 'POST',
-				body: tempSub.toJSON() // 명시적으로 JSON 직렬화 데이터 전송
+				body: tempSub.toJSON(), // 명시적으로 JSON 직렬화 데이터 전송
 			});
 
 			// 4. 모든 과정 성공 시 상태 업데이트
@@ -168,7 +167,7 @@ class PushNotificationManager {
 			try {
 				await api<void>(`${this.SERVER_URL}/subscriptions/unsubscribe`, {
 					method: 'POST',
-					body: subToUnsubscribe.toJSON()
+					body: subToUnsubscribe.toJSON(),
 				});
 			} catch (serverError) {
 				console.warn('[PushManager] 서버 구독 해제 실패 (무시하고 진행):', serverError);
@@ -181,7 +180,7 @@ class PushNotificationManager {
 		} catch (e) {
 			this.emit({
 				type: 'subscribe-failed',
-				error: e instanceof Error ? e.message : 'unknown error'
+				error: e instanceof Error ? e.message : 'unknown error',
 			});
 		} finally {
 			// 3. 성공하든 실패하든 클라이언트 상태는 초기화 (사용자 입장에서 해제됨)
@@ -209,18 +208,16 @@ class PushNotificationManager {
 	}
 
 	async testNotification() {
-		try {
-			if (!this.subscription) {
-				return;
-			}
-
-			await api<void>(`${this.SERVER_URL}/api/push-test`, {
-				method: 'POST',
-				body: this.subscription.toJSON()
-			});
-		} catch (_) {
-			toast.error('테스트 푸시 실패.');
+		if (!this.subscription) {
+			return;
 		}
+
+		await catchError(
+			api<void>(`${this.SERVER_URL}/api/push-test`, {
+				method: 'POST',
+				body: this.subscription.toJSON(),
+			}),
+		);
 	}
 
 	async handleDemoPush(message: string) {
@@ -255,7 +252,7 @@ class PushNotificationManager {
 				// 기존 구독이 없을 때만 새로 생성하고, '새로 만들었다'고 표시
 				tempSub = await reg.pushManager.subscribe({
 					userVisibleOnly: true,
-					applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY)
+					applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY),
 				});
 				isNewSubscription = true;
 			}
@@ -269,8 +266,8 @@ class PushNotificationManager {
 					endpoint: subJson.endpoint,
 					auth: subJson.keys?.auth,
 					p256dh: subJson.keys?.p256dh,
-					message: message
-				}
+					message: message,
+				},
 			});
 		} catch (e) {
 			// 에러가 났는데, 만약 이번에 새로 만든 임시 구독이었다면 즉시 삭제
@@ -278,12 +275,6 @@ class PushNotificationManager {
 				await tempSub.unsubscribe().catch(() => {});
 			}
 			console.log(e);
-
-			this.emit({
-				type: 'demo-failed',
-				error: e instanceof Error ? e.message : 'unknown error'
-			});
-			toast.error('push failed'); // TODO(pjt): 메세지 수정
 		} finally {
 			// 기존 유저(이미 구독한 유저)가 데모를 눌렀을 때는 구독을 유지해야 합니다.
 			if (tempSub && isNewSubscription) {

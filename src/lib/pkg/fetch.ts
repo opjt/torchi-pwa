@@ -22,13 +22,17 @@ type ApiResponse<T> = {
 	success: boolean;
 	data: T;
 	message?: string;
+	error?: {
+		code: string;
+		message: string;
+	};
 };
 
 const showToast = (type: ToastType, message: string) => {
 	if (type === 'none') return;
 	if (type === 'error') {
 		toast.error(message, {
-			duration: 2300 // ms
+			duration: 2300, // ms
 		});
 	} else if (type === 'warning') {
 		//TODO: Warning 토스트 개선
@@ -38,14 +42,14 @@ const showToast = (type: ToastType, message: string) => {
 
 export async function api<TResponse, TBody = unknown>(
 	url: string,
-	options: ApiOptions<TBody> = {}
+	options: ApiOptions<TBody> = {},
 ): Promise<TResponse> {
 	const {
 		method = 'GET',
 		body,
 		headers,
 		signal,
-		toastType = 'error' // 토스트를 직접 컨트롤 하려면 'none' 으로 사용
+		toastType = 'error', // 토스트를 직접 컨트롤 하려면 'none' 으로 사용
 	} = options;
 
 	// 에러를 던지기 전에 토스트를 처리하는 내부 헬퍼
@@ -55,7 +59,7 @@ export async function api<TResponse, TBody = unknown>(
 		const error: ApiError = {
 			status,
 			message,
-			code
+			code,
 		};
 		throw error;
 	};
@@ -66,27 +70,26 @@ export async function api<TResponse, TBody = unknown>(
 			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
-				...headers
+				...headers,
 			},
 			body: body ? JSON.stringify(body) : undefined,
-			signal
+			signal,
 		});
 
 		// HTTP 에러 처리 (400~500번대)
 		if (!res.ok) {
-			let message = res.statusText;
-			let code = String(res.status);
+			const { status, statusText } = res;
+			let message = statusText;
+			let code = String(status);
 
-			try {
-				// 에러 응답이 JSON이면 메시지 파싱 시도
-				const errData = await res.json();
-				message = errData.message ?? message;
-				code = errData.code ?? code;
-			} catch {
-				// JSON 파싱 실패 시 기본 statusText 사용 (무시)
+			const errData: ApiResponse<never> = await res.json().catch(() => ({}));
+
+			if (errData.error) {
+				message = errData.error.message;
+				code = errData.error.code;
 			}
 
-			return handleError(res.status, message, code);
+			return handleError(status, message, code);
 		}
 
 		// 204 No Content 처리
@@ -108,7 +111,7 @@ export async function api<TResponse, TBody = unknown>(
 			return handleError(
 				json.code ?? res.status,
 				json.message ?? 'Unknown API Error',
-				String(json.code)
+				String(json.code),
 			);
 		}
 
