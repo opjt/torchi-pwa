@@ -2,8 +2,25 @@
 	import '$src/app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { Toaster } from '$lib/components/ui/sonner/index';
-	import { onMount } from 'svelte';
-	import { auth } from '$lib/client/auth/auth';
+	import { onMount, type ComponentProps } from 'svelte';
+
+	type Position = ComponentProps<typeof Toaster>['position'];
+
+	let position = $state<Position>('top-center');
+
+	function updatePosition() {
+		if (window.innerWidth < 768) {
+			position = 'bottom-center';
+		} else {
+			position = 'top-center';
+		}
+	}
+
+	onMount(() => {
+		updatePosition(); // 초기 실행
+		window.addEventListener('resize', updatePosition);
+		return () => window.removeEventListener('resize', updatePosition);
+	});
 
 	let { children } = $props();
 
@@ -25,5 +42,5 @@
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
-<Toaster duration={1400} position="top-right" />
+<Toaster duration={1400} {position} />
 {@render children()}

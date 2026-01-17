@@ -148,7 +148,7 @@
 
 <div class="bg-base-100 font-sans text-base-content flex min-h-screen flex-col">
 	<header
-		class="top-0 bg-base-100/80 px-6 py-6 backdrop-blur-md sticky z-20 flex items-center justify-between"
+		class="top-0 bg-base-100/80 px-6 py-6 backdrop-blur-md border-base-content/8 sticky z-20 flex items-center justify-between border-b"
 	>
 		<div class="flex items-center">
 			<button

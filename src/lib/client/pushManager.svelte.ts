@@ -228,7 +228,7 @@ class PushNotificationManager {
 		}
 	}
 
-	async handleDemoPush() {
+	async handleDemoPush(message: string) {
 		if (!browser || !('Notification' in window) || !('serviceWorker' in navigator)) {
 			console.log('지원되지 않는 브라우저');
 			// TODO(pjt): 전역 토스트 핸들러 추가 필요
@@ -274,7 +274,7 @@ class PushNotificationManager {
 					endpoint: subJson.endpoint,
 					auth: subJson.keys?.auth,
 					p256dh: subJson.keys?.p256dh,
-					message: '짜잔형이야'
+					message: message
 				}
 			});
 		} catch (e) {

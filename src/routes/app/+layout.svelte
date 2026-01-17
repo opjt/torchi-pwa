@@ -78,7 +78,7 @@
 		{/if}
 
 		<div class="flex-1 overflow-y-auto">
-			<div class="max-w-3xl px-4 font-sans text-base-content mx-auto flex flex-col">
+			<div class="max-w-3xl px-0 md:px-4 font-sans text-base-content mx-auto flex flex-col">
 				{@render children()}
 			</div>
 		</div>

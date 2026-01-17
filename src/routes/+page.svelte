@@ -16,8 +16,10 @@
 
 	let isWebContext = true;
 
+	const demoMessage = 'Hello world!';
+
 	async function handleSubscribe() {
-		await push.handleDemoPush();
+		await push.handleDemoPush(demoMessage);
 	}
 
 	// PWA 설치 함수
@@ -116,14 +118,15 @@
 				>
 					<span class="text-info">curl</span>
 					<span class="break-all opacity-90">"{PUBLIC_API_URL}/api/demo" \ </span>
-					<div>&nbsp;-d <span class="text-success">'Hello World!'</span></div>
+					<div>&nbsp;-d <span class="text-success">'{demoMessage}'</span></div>
 
 					<div></div>
 
 					<button
 						on:click={handleSubscribe}
 						disabled={push.isToggling}
-						class="btn right-2 bottom-2 gap-2 rounded-xl shadow-lg btn-sm btn-primary absolute normal-case transition-transform hover:scale-105"
+						class="btn right-2 bottom-2 gap-2 rounded-xl shadow-lg btn-sm btn-primary disabled:bg-primary disabled:text-primary-content absolute normal-case transition-transform hover:scale-105
+						disabled:opacity-80"
 					>
 						{#if push.isToggling}
 							<LoaderCircle size={14} class="animate-spin" />
