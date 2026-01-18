@@ -2,6 +2,7 @@
 	import '$src/app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { Toaster } from '$lib/components/ui/sonner/index';
+	import { push } from '$lib/client/pushManager.svelte';
 	import { onMount, type ComponentProps } from 'svelte';
 
 	type Position = ComponentProps<typeof Toaster>['position'];
@@ -17,6 +18,7 @@
 	}
 
 	onMount(() => {
+		push.initialize();
 		updatePosition(); // 초기 실행
 		window.addEventListener('resize', updatePosition);
 		return () => window.removeEventListener('resize', updatePosition);

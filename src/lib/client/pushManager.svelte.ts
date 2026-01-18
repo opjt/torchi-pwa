@@ -97,38 +97,34 @@ class PushNotificationManager {
 		if (browser) {
 			// 브라우저가 Notification 기능이 있을 경우만.
 			this.permissionState = 'Notification' in window ? Notification.permission : 'default';
-			this.init();
-			// 권한 변경 감시 시작
-			this.watchPermission();
 		}
 	}
+	async initialize() {
+		if (!browser) return;
 
-	private async init() {
-		// 브라우저가 아니거나 SW를 지원하지 않으면 로딩 종료
+		// 1. 지원 여부 확인
 		if (!this.checkSupport()) {
 			this.isLoading = false;
 			return;
 		}
 
 		try {
-			// 권한이 denied면 굳이 로딩할 필요 없음 (빠른 종료)
-			if (Notification.permission === 'denied') {
-				this.permissionState = 'denied';
-				return;
-			}
-
-			// 1. 서비스 워커 등록
 			await navigator.serviceWorker.register('/service-worker.js', {
 				type: 'module',
 				scope: '/',
 			});
-			await navigator.serviceWorker.ready;
-			console.log('[PushManager] Service Worker Ready');
 
-			// 2. 기존 구독 정보 확인
-			await this.loadSubscription();
+			this.watchPermission();
+
+			if (Notification.permission !== 'denied') {
+				await this.loadSubscription();
+			} else {
+				// 차단된 상태라면 명시적으로 상태 업데이트
+				this.isSubscribed = false;
+				this.subscription = null;
+			}
 		} catch (e) {
-			console.error('[PushManager] Init failed:', e);
+			console.error('[PushManager] Initialization failed:', e);
 		} finally {
 			this.isLoading = false;
 		}
