@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
 import { api, catchError } from '$lib/pkg/fetch';
+import { toast } from 'svelte-sonner';
 
 export type PushEvent =
 	| { type: 'subscribed' }
@@ -9,6 +10,37 @@ export type PushEvent =
 	| { type: 'subscribe-failed'; error: string }
 	| { type: 'unsubscribe-failed'; error: string }
 	| { type: 'demo-failed'; error: string };
+
+const PushError = {
+	PERMISSION_DENIED: {
+		type: 'error',
+		message: '브라우저 알림 권한이 차단되어 있어요. 권한을 허용해 주세요.',
+	},
+	SUBSCRIBE_FAILED: {
+		type: 'error',
+		message: '알림 신청을 완료하지 못했어요.',
+	},
+	SUBSCRIBE_SUCCESS: {
+		type: 'success',
+		message: '이제 실시간 알림을 받을 수 있어요.',
+	},
+	UNSUBSCRIBE_FAILED: {
+		type: 'error',
+		message: '알림 해제 처리에 실패했어요.',
+	},
+	UNSUBSCRIBE_SUCCESS: {
+		type: 'success',
+		message: '알림 구독을 해제했어요.',
+	},
+	UNSUPPORTED: {
+		type: 'error',
+		message: '현재 환경에서는 알림 기능을 지원하지 않아요.',
+	},
+	SW_REG_FAILED: {
+		type: 'error',
+		message: '서비스 워커 초기화에 실패했어요.',
+	},
+} as const;
 
 class PushNotificationManager {
 	isLoading = $state(true);
@@ -22,15 +54,43 @@ class PushNotificationManager {
 
 	private events = $state<PushEvent[]>([]);
 
-	private emit(event: PushEvent) {
-		this.events = [...this.events, event];
-	}
+	private notifyError(localError: (typeof PushError)[keyof typeof PushError], e?: unknown) {
+		// 1. 상세 메시지(description) 추출 로직
+		let description: string | null = null;
 
+		if (e instanceof Error) {
+			description = e.message;
+		} else if (typeof e === 'object' && e !== null && 'error' in e) {
+			// api 유틸리티의 공통 에러 구조인 { error: { message: string } } 대응
+			const errorBody = (e as { error: { message?: string } }).error;
+			description = errorBody?.message || null;
+		}
+
+		// 2. 성공/실패 여부에 따른 토스트 함수 결정
+		const toastFn = localError.type === 'success' ? toast.success : toast.error;
+
+		// 3. 토스트 출력
+		toastFn(localError.message, {
+			...(description && { description: `${description}` }),
+		});
+	}
 	consumeEvent(): PushEvent | null {
 		if (this.events.length === 0) return null;
 		const [head, ...rest] = this.events;
 		this.events = rest;
 		return head;
+	}
+	get isSupported() {
+		return browser && 'serviceWorker' in navigator && 'Notification' in window;
+	}
+
+	private checkSupport(): boolean {
+		if (!this.isSupported) {
+			console.warn('[PushManager] 이 브라우저는 푸시 알림을 지원하지 않습니다.');
+			toast.error('지원되지 않는 브라우저입니다.');
+			return false;
+		}
+		return true;
 	}
 
 	constructor() {
@@ -45,7 +105,7 @@ class PushNotificationManager {
 
 	private async init() {
 		// 브라우저가 아니거나 SW를 지원하지 않으면 로딩 종료
-		if (!browser || !('serviceWorker' in navigator) || !('Notification' in window)) {
+		if (!this.checkSupport()) {
 			this.isLoading = false;
 			return;
 		}
@@ -75,7 +135,7 @@ class PushNotificationManager {
 	}
 
 	private watchPermission() {
-		if (!browser || !('permissions' in navigator) || !('Notification' in window)) return;
+		if (!this.checkSupport()) return;
 
 		navigator.permissions.query({ name: 'notifications' }).then((status) => {
 			status.onchange = async () => {
@@ -102,10 +162,8 @@ class PushNotificationManager {
 
 	// 구독 로직
 	async handleSubscribe() {
-		if (!('Notification' in window)) {
-			this.emit({ type: 'subscribe-failed', error: '이 브라우저는 알림을 지원하지 않습니다.' });
-			return;
-		}
+		if (!this.checkSupport()) return;
+
 		this.isToggling = true;
 		let tempSub: PushSubscription | null = null;
 
@@ -139,7 +197,7 @@ class PushNotificationManager {
 			// 4. 모든 과정 성공 시 상태 업데이트
 			this.subscription = tempSub;
 			this.isSubscribed = true;
-			this.emit({ type: 'subscribed' });
+			this.notifyError(PushError.SUBSCRIBE_SUCCESS);
 		} catch (_) {
 			// 서버 등록 실패 시 브라우저 구독도 취소 (데이터 정합성 유지)
 			if (tempSub) {
@@ -161,29 +219,20 @@ class PushNotificationManager {
 		const subToUnsubscribe = this.subscription; // 현재 구독 객체 캡처
 
 		try {
-			// 1. 서버에 먼저 알림 (Best Effort)
-			// 서버 실패가 브라우저 해제를 막으면 안 되므로 try-catch로 감싸거나,
-			// 실패하더라도 진행하도록 로직 구성
-			try {
-				await api<void>(`${this.SERVER_URL}/subscriptions/unsubscribe`, {
+			await catchError(
+				// 실패해도 조용히 넘어갑니다.
+				api<void>(`${this.SERVER_URL}/subscriptions/unsubscribe`, {
 					method: 'POST',
 					body: subToUnsubscribe.toJSON(),
-				});
-			} catch (serverError) {
-				console.warn('[PushManager] 서버 구독 해제 실패 (무시하고 진행):', serverError);
-			}
-
-			// 2. 브라우저 구독 해제 (가장 중요)
-			await subToUnsubscribe.unsubscribe();
-
-			this.emit({ type: 'unsubscribed' });
+					toastType: 'none',
+				}),
+			);
+			await subToUnsubscribe.unsubscribe(); //브라우저 구독 해제
+			this.notifyError(PushError.UNSUBSCRIBE_SUCCESS);
 		} catch (e) {
-			this.emit({
-				type: 'subscribe-failed',
-				error: e instanceof Error ? e.message : 'unknown error',
-			});
+			this.notifyError(PushError.UNSUBSCRIBE_FAILED, e);
 		} finally {
-			// 3. 성공하든 실패하든 클라이언트 상태는 초기화 (사용자 입장에서 해제됨)
+			// 성공하든 실패하든 클라이언트 상태는 초기화 (사용자 입장에서 해제됨)
 			this.subscription = null;
 			this.isSubscribed = false;
 
@@ -192,7 +241,7 @@ class PushNotificationManager {
 	}
 
 	async loadSubscription() {
-		if (!browser || !('serviceWorker' in navigator) || !('Notification' in window)) return;
+		if (!this.checkSupport()) return;
 		try {
 			const reg = await navigator.serviceWorker.ready;
 			const sub = await reg.pushManager.getSubscription();
@@ -221,11 +270,7 @@ class PushNotificationManager {
 	}
 
 	async handleDemoPush(message: string) {
-		if (!browser || !('Notification' in window) || !('serviceWorker' in navigator)) {
-			console.log('지원되지 않는 브라우저');
-			// TODO(pjt): 전역 토스트 핸들러 추가 필요
-			return;
-		}
+		if (!this.checkSupport()) return;
 
 		this.isToggling = true;
 		let tempSub: PushSubscription | null = null;
@@ -239,12 +284,10 @@ class PushNotificationManager {
 			this.permissionState = permission;
 
 			if (permission !== 'granted') {
-				console.log('[PushManager] Permission denied');
-				this.emit({ type: 'permission-denied' });
+				this.notifyError(PushError.PERMISSION_DENIED);
 				return;
 			}
 
-			// 2. 구독 정보 확인 및 생성
 			// 기존에 구독된 게 있는지 먼저 확인
 			tempSub = await reg.pushManager.getSubscription();
 
@@ -257,7 +300,7 @@ class PushNotificationManager {
 				isNewSubscription = true;
 			}
 
-			// 3. 데모 전용 엔드포인트 호출
+			// 데모 전용 엔드포인트 호출
 			const subJson = tempSub.toJSON();
 
 			await api<void>(`${this.SERVER_URL}/api/push-demo`, {

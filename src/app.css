@@ -22,6 +22,9 @@
 	--front-toast-shadow: none !important;
 	--stacked-toast-shadow: none !important;
 }
+[data-sonner-toast][data-styled='true'] [data-description] {
+	color: var(--color-base-300) !important;
+}
 
 @theme inline {
 	--radius-sm: calc(var(--radius) - 4px);

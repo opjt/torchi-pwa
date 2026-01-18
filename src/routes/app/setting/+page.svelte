@@ -6,11 +6,10 @@
 		deleteEndpoint,
 		type Endpoint,
 		unmuteEndpoint,
-		muteEndpoint
+		muteEndpoint,
 	} from '$lib/api/endpoints';
 	import { logout } from '$lib/client/auth/lifecycle';
 	import { push } from '$lib/client/pushManager.svelte';
-	import { toast } from 'svelte-sonner';
 	import { api } from '$lib/pkg/fetch';
 	import { auth } from '$lib/client/auth/auth';
 
@@ -28,26 +27,6 @@
 
 	onMount(async () => {
 		await getEndpoints();
-	});
-
-	$effect(() => {
-		const event = push.consumeEvent();
-		if (!event) return;
-
-		switch (event.type) {
-			case 'subscribed':
-				toast.success('푸시 알림이 활성화되었습니다');
-				break;
-			case 'unsubscribed':
-				toast.success('푸시 알림이 비활성화되었습니다');
-				break;
-			case 'permission-denied':
-				toast.error('알림 권한이 거부되었습니다');
-				break;
-			case 'subscribe-failed':
-				toast.error('구독 실패', { description: event.error });
-				break;
-		}
 	});
 
 	async function getEndpoints() {
@@ -68,8 +47,8 @@
 			await api<void>(`${PUBLIC_API_URL}/endpoints`, {
 				method: 'POST',
 				body: {
-					serviceName: newServiceName.trim()
-				}
+					serviceName: newServiceName.trim(),
+				},
 			});
 		} catch (e) {
 			console.error(e);
