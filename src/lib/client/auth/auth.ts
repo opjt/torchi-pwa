@@ -39,7 +39,7 @@ function createAuthStore(): AuthStore {
 		},
 
 		ready: {
-			subscribe: readyStore.subscribe
+			subscribe: readyStore.subscribe,
 		},
 
 		isAuthenticated: () => {
@@ -61,7 +61,7 @@ function createAuthStore(): AuthStore {
 
 		logout: () => {
 			set(null);
-		}
+		},
 	};
 
 	return store;

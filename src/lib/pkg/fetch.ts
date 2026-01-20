@@ -1,6 +1,7 @@
 import { toast } from 'svelte-sonner';
 import { getErrorMessage } from './error-message';
 import { PUBLIC_API_URL } from '$lib/config';
+import { logout } from '$lib/client/auth/lifecycle';
 
 export type ApiError = {
 	status: number;
@@ -49,6 +50,13 @@ const showToast = (type: ToastType, message: string) => {
 		//TODO: Warning 토스트 개선
 		console.warn(`[Warning] ${message}`);
 	}
+};
+
+const onAuthFailure: () => Promise<void> | void = async () => {
+	toast.message('안전한 이용을 위해 다시 한번 로그인해 주세요.', {
+		duration: 3000,
+	});
+	await logout(); //순환참조 괜찮을까?
 };
 
 export async function api<TResponse, TBody = unknown>(
@@ -104,12 +112,12 @@ export async function api<TResponse, TBody = unknown>(
 						} else {
 							// 리프레시 토큰 만료 -> 로그아웃
 							onRefreshed(false);
-							window.location.href = '/?expired=true';
+							onAuthFailure();
 						}
 					} catch (_) {
 						// 네트워크 에러 등
 						onRefreshed(false);
-						window.location.href = '/?expired=true';
+						onAuthFailure();
 					} finally {
 						isRefreshing = false;
 					}
