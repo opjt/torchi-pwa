@@ -149,7 +149,9 @@
 		class="top-0 border-base-content/10 bg-base-100/90 px-5 py-5 backdrop-blur-md sticky z-30 flex items-center justify-between border-b"
 	>
 		<div>
-			<h1 class="text-xl font-black tracking-tight">Torchi</h1>
+			<h1 class="text-xl font-black tracking-tight gap-0.5 flex">
+				Torchi<span class="text-primary">.</span>
+			</h1>
 			<p class="font-mono text-[10px] opacity-40">{$auth?.email || 'Guest'}</p>
 		</div>
 

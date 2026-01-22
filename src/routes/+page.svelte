@@ -124,11 +124,11 @@
 				</div>
 
 				<div
-					class="rounded-2xl bg-neutral p-4 pt-8 pb-6 font-mono text-neutral-content shadow-2xl border-white/5 relative overflow-hidden border text-[13px]"
+					class="rounded-2xl bg-neutral p-4 pt-8 pb-6 font-mono text-neutral-content/90 shadow-2xl border-white/5 relative overflow-hidden border text-[13px]"
 				>
-					<span class="text-info">curl</span>
-					<span class="break-all opacity-90"> "{PUBLIC_API_URL}/api/demo" \ </span>
-					<div>&nbsp;-d <span class="text-success">'{demoMessage}'</span></div>
+					<span class="">curl</span>
+					<span class=""> "{PUBLIC_API_URL}/api/demo" \ </span>
+					<div>&nbsp;-d <span class="text-success/90">'{demoMessage}'</span></div>
 
 					<button
 						on:click={handleSubscribe}
