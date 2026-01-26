@@ -19,7 +19,9 @@
 	--color-base-content: oklch(20% 0.02 32); /* 본문 텍스트 (완전 검정 대신 진한 웜그레이) */
 
 	/* 메인 컬러: 당근마켓의 시그니처 주황색 */
-	--color-primary: oklch(68% 0.22 40); /* 당근 주황색 (#FF6F0F 계열) */
+	--color-primary: oklch(
+		68% 0.22 40
+	); /* 당근당근 #ff5600
 	--color-primary-content: oklch(100% 0 0); /* 주황색 위 흰색 글씨 */
 
 	/* 보조 컬러: 신뢰감을 주는 짙은 색이나 부드러운 톤 */

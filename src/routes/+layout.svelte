@@ -4,45 +4,78 @@
 	import { Toaster } from '$lib/components/ui/sonner/index';
 	import { push } from '$lib/client/pushManager.svelte';
 	import { onMount, type ComponentProps } from 'svelte';
+	import { toast } from 'svelte-sonner';
 
 	type Position = ComponentProps<typeof Toaster>['position'];
 
 	let position = $state<Position>('top-center');
-
+	const swSessionStorageKey = 'sw-just-updated';
 	function updatePosition() {
-		if (window.innerWidth < 768) {
-			position = 'bottom-center';
-		} else {
-			position = 'top-center';
-		}
+		position = window.innerWidth < 768 ? 'bottom-center' : 'top-center';
 	}
 
 	onMount(() => {
 		push.initialize();
-		updatePosition(); // 초기 실행
+		updatePosition();
 		window.addEventListener('resize', updatePosition);
-		return () => window.removeEventListener('resize', updatePosition);
+		return () => {
+			window.removeEventListener('resize', updatePosition);
+		};
+	});
+
+	onMount(async () => {
+		if (typeof window !== 'undefined') {
+			const { registerSW } = await import('virtual:pwa-register');
+
+			const updateServiceWorker = registerSW({
+				immediate: true,
+
+				onNeedRefresh() {
+					console.log('새 버전 발견');
+
+					// 토스트로 알림 (자동 업데이트 예정)
+					toast.info('새 버전을 다운로드 중입니다...', {
+						duration: 2000,
+					});
+
+					// 3초 후 자동 업데이트 (사용자가 현재 작업 마무리할 시간)
+					setTimeout(() => {
+						toast.success('업데이트를 적용합니다...', {
+							duration: 1200,
+						});
+
+						setTimeout(() => {
+							sessionStorage.setItem(swSessionStorageKey, 'true');
+							updateServiceWorker(true);
+						}, 1400);
+					}, 2500);
+				},
+
+				onOfflineReady() {
+					console.log('오프라인 사용이 가능합니다!');
+				},
+			});
+		}
+	});
+
+	// 업데이트 완료 후 토스트
+	onMount(() => {
+		const justUpdated = sessionStorage.getItem(swSessionStorageKey);
+
+		if (justUpdated === 'true') {
+			toast.success('앱이 최신 버전으로 업데이트되었습니다!', {
+				duration: 3000,
+			});
+			sessionStorage.removeItem(swSessionStorageKey);
+		}
 	});
 
 	let { children } = $props();
-
-	onMount(async () => {
-		// 1. 인증 초기화
-		// await auth.init();
-		// // 2. 서비스 워커 업데이트 감지 및 새로고침 로직
-		// if ('serviceWorker' in navigator) {
-		// 	let refreshing = false;
-		// 	// 새로운 서비스 워커가 제어권을 가졌을 때 발생
-		// 	navigator.serviceWorker.addEventListener('controllerchange', () => {
-		// 		if (refreshing) return;
-		// 		refreshing = true;
-		// 		console.log('[SW] 새로운 서비스 워커 활성화 - 페이지 새로고침');
-		// 		window.location.reload();
-		// 	});
-		// }
-	});
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={favicon} />
+</svelte:head>
+
 <Toaster duration={1400} {position} />
 {@render children()}

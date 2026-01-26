@@ -16,7 +16,6 @@ export default defineConfig({
 			mode: 'production', // 'development' or 'production',
 			strategies: 'injectManifest',
 			filename: 'service-worker.ts',
-			registerType: 'autoUpdate', // 새 버전 발견 시 자동 업데이트
 
 			// Manifest 설정
 			manifest: {

@@ -109,11 +109,6 @@ class PushNotificationManager {
 		}
 
 		try {
-			await navigator.serviceWorker.register('/service-worker.js', {
-				type: 'module',
-				scope: '/',
-			});
-
 			this.watchPermission();
 
 			if (Notification.permission !== 'denied') {
