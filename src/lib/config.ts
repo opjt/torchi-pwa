@@ -18,14 +18,14 @@ function getConfig() {
 		return {
 			apiUrl: window.__APP_CONFIG__.API_URL,
 			vapidKey: window.__APP_CONFIG__.VAPID_KEY,
-			githubClientId: window.__APP_CONFIG__.GITHUB_CLIENT_ID
+			githubClientId: window.__APP_CONFIG__.GITHUB_CLIENT_ID,
 		};
 	}
 
 	return {
 		apiUrl: staticEnv.PUBLIC_API_URL || '',
 		vapidKey: staticEnv.PUBLIC_VAPID_KEY || '',
-		githubClientId: staticEnv.PUBLIC_GITHUB_CLIENT_ID || ''
+		githubClientId: staticEnv.PUBLIC_GITHUB_CLIENT_ID || '',
 	};
 }
 

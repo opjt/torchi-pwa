@@ -359,7 +359,7 @@
 					<span>·</span>
 					<a href="/privacy" target="" class="hover:opacity-70">개인정보처리방침</a>
 				</div>
-				<p class="font-mono text-[10px] opacity-30">v1.0.0-beta.build.02</p>
+				<p class="font-mono text-[10px] opacity-30">v{__APP_VERSION__}</p>
 			</div>
 		</section>
 	</main>

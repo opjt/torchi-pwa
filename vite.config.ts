@@ -3,6 +3,12 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
+
+const file = fileURLToPath(new URL('package.json', import.meta.url));
+const json = readFileSync(file, 'utf8');
+const pkg = JSON.parse(json);
 
 export default defineConfig({
 	resolve: { alias: { $lib: path.resolve('./src/lib'), $src: path.resolve('./src') } },
@@ -55,4 +61,7 @@ export default defineConfig({
 			devOptions: { enabled: false, type: 'module', navigateFallback: '/' },
 		}),
 	],
+	define: {
+		__APP_VERSION__: JSON.stringify(pkg.version),
+	},
 });
