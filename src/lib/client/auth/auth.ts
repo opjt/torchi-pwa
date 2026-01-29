@@ -1,5 +1,6 @@
 import { get, writable, derived, type Readable } from 'svelte/store';
 import { fetchWhoami, type UserInfo } from '$lib/api/user';
+import { push } from '../pushManager.svelte';
 
 type AuthState = UserInfo | null | undefined;
 
@@ -29,6 +30,7 @@ function createAuthStore(): AuthStore {
 			try {
 				const userInfo = await fetchWhoami();
 				set(userInfo);
+				await push.loadSubscription(true);
 			} catch (error) {
 				console.error('Auth init failed:', error);
 				set(null);

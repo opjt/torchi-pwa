@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { subscribe } from '$lib/api/push';
 import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
 import { api, catchError } from '$lib/pkg/fetch';
 import { toast } from 'svelte-sonner';
@@ -84,6 +85,7 @@ class PushNotificationManager {
 			this.permissionState = 'Notification' in window ? Notification.permission : 'default';
 		}
 	}
+
 	async initialize() {
 		if (!browser) return;
 
@@ -185,11 +187,7 @@ class PushNotificationManager {
 			// 3. 서버 전송 (중요: this.subscription이 아닌 tempSub를 보냄)
 			// PushSubscription 객체는 toJSON()을 가지고 있으므로 이를 명시적으로 호출하거나,
 			// JSON.stringify가 내부적으로 호출하도록 객체 자체를 넘깁니다.
-			await api<void>(`${this.SERVER_URL}/subscriptions`, {
-				// 엔드포인트 이름 통일 권장
-				method: 'POST',
-				body: tempSub.toJSON(), // 명시적으로 JSON 직렬화 데이터 전송
-			});
+			await subscribe(tempSub);
 
 			// 4. 모든 과정 성공 시 상태 업데이트
 			this.subscription = tempSub;
@@ -237,19 +235,23 @@ class PushNotificationManager {
 		}
 	}
 
-	async loadSubscription() {
+	async loadSubscription(initialize = false) {
 		if (!this.checkSupport()) return;
 		try {
 			const reg = await navigator.serviceWorker.ready;
 			const sub = await reg.pushManager.getSubscription();
 
 			this.subscription = sub;
-			this.isSubscribed = !!sub;
 			this.permissionState = Notification.permission;
 
+			this.isSubscribed = !!sub;
+			if (initialize && this.subscription) {
+				await subscribe(this.subscription);
+			}
+
 			console.log('[PushManager] Loaded subscription:', !!sub);
-			console.log(this.permissionState);
 		} catch (e) {
+			this.isSubscribed = false;
 			console.error('[PushManager] Load failed:', e);
 		}
 	}
