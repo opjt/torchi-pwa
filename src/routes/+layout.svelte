@@ -5,6 +5,7 @@
 	import { push } from '$lib/client/pushManager.svelte';
 	import { onMount, type ComponentProps } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import { isDev } from '$lib/pkg/util';
 
 	type Position = ComponentProps<typeof Toaster>['position'];
 
@@ -24,6 +25,10 @@
 	});
 
 	onMount(async () => {
+		if (isDev()) {
+			toast.info('dev mode', { duration: 800 });
+			return;
+		}
 		if (typeof window !== 'undefined') {
 			const { registerSW } = await import('virtual:pwa-register');
 

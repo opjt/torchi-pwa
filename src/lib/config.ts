@@ -35,7 +35,4 @@ export const PUBLIC_VAPID_KEY = config.vapidKey;
 export const PUBLIC_API_URL = config.apiUrl;
 export const PUBLIC_GITHUB_CLIENT_ID = config.githubClientId;
 
-// 개발 환경에서만 로그
-if (import.meta.env.DEV) {
-	debugLog('앱 설정:', config);
-}
+debugLog('앱 설정:', config);

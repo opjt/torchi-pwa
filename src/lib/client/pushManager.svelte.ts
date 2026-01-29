@@ -3,14 +3,6 @@ import { PUBLIC_API_URL, PUBLIC_VAPID_KEY } from '$lib/config';
 import { api, catchError } from '$lib/pkg/fetch';
 import { toast } from 'svelte-sonner';
 
-export type PushEvent =
-	| { type: 'subscribed' }
-	| { type: 'unsubscribed' }
-	| { type: 'permission-denied' }
-	| { type: 'subscribe-failed'; error: string }
-	| { type: 'unsubscribe-failed'; error: string }
-	| { type: 'demo-failed'; error: string };
-
 const PushError = {
 	PERMISSION_DENIED: {
 		type: 'error',
@@ -52,8 +44,6 @@ class PushNotificationManager {
 	private VAPID_PUBLIC_KEY = PUBLIC_VAPID_KEY;
 	private SERVER_URL = PUBLIC_API_URL;
 
-	private events = $state<PushEvent[]>([]);
-
 	private notifyError(localError: (typeof PushError)[keyof typeof PushError], e?: unknown) {
 		// 1. 상세 메시지(description) 추출 로직
 		let description: string | null = null;
@@ -74,12 +64,7 @@ class PushNotificationManager {
 			...(description && { description: `${description}` }),
 		});
 	}
-	consumeEvent(): PushEvent | null {
-		if (this.events.length === 0) return null;
-		const [head, ...rest] = this.events;
-		this.events = rest;
-		return head;
-	}
+
 	get isSupported() {
 		return browser && 'serviceWorker' in navigator && 'Notification' in window;
 	}
@@ -111,12 +96,12 @@ class PushNotificationManager {
 		try {
 			this.watchPermission();
 
-			if (Notification.permission !== 'denied') {
-				await this.loadSubscription();
-			} else {
+			if (Notification.permission == 'denied') {
 				// 차단된 상태라면 명시적으로 상태 업데이트
 				this.isSubscribed = false;
 				this.subscription = null;
+			} else {
+				await this.loadSubscription();
 			}
 		} catch (e) {
 			console.error('[PushManager] Initialization failed:', e);
@@ -124,7 +109,28 @@ class PushNotificationManager {
 			this.isLoading = false;
 		}
 	}
+	async getEndpoint(): Promise<string | null> {
+		if (!this.checkSupport()) return null;
 
+		try {
+			// 1. 서비스 워커가 활성화될 때까지 대기
+			const reg = await navigator.serviceWorker.ready;
+
+			// 2. 기존 구독 정보 확인
+			const sub = await reg.pushManager.getSubscription();
+
+			if (!sub) {
+				console.log('[PushManager] 등록된 구독 정보가 없습니다.');
+				return null;
+			}
+
+			// 3. 엔드포인트 URL 반환
+			return sub.endpoint;
+		} catch (e) {
+			console.error('[PushManager] 엔드포인트 추출 실패:', e);
+			return null;
+		}
+	}
 	private watchPermission() {
 		if (!this.checkSupport()) return;
 
@@ -242,6 +248,7 @@ class PushNotificationManager {
 			this.permissionState = Notification.permission;
 
 			console.log('[PushManager] Loaded subscription:', !!sub);
+			console.log(this.permissionState);
 		} catch (e) {
 			console.error('[PushManager] Load failed:', e);
 		}

@@ -58,7 +58,7 @@ export default defineConfig({
 			},
 
 			// 개발 모드에서도 PWA 테스트
-			devOptions: { enabled: false, type: 'module', navigateFallback: '/' },
+			devOptions: { enabled: true, type: 'module', navigateFallback: '/' },
 		}),
 	],
 	define: {

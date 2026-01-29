@@ -3,6 +3,9 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(self as any).__WB_DISABLE_DEV_LOGS = true;
+
 interface ManifestEntry {
 	url: string;
 	revision: string | null;

@@ -4,3 +4,7 @@ export function debugLog(...args: any[]) {
 		console.log('[DEBUG]', ...args);
 	}
 }
+
+export function isDev() {
+	return import.meta.env.DEV;
+}
