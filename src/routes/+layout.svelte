@@ -6,6 +6,7 @@
 	import { onMount, type ComponentProps } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { isDev } from '$lib/pkg/util';
+	import { defaultToastCooldown } from '$lib/pkg/toast';
 
 	type Position = ComponentProps<typeof Toaster>['position'];
 
@@ -82,5 +83,5 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Toaster duration={1400} {position} />
+<Toaster duration={defaultToastCooldown} {position} />
 {@render children()}

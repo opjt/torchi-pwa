@@ -1,15 +1,13 @@
-import { toast } from 'svelte-sonner';
-import { getErrorMessage } from './error-message';
-import { PUBLIC_API_URL } from '$lib/config';
 import { logout } from '$lib/client/auth/lifecycle';
+import { PUBLIC_API_URL } from '$lib/config';
+import { getErrorMessage } from './error-message';
+import { shouldShowToast, showToast, type ToastType } from './toast';
 
 export type ApiError = {
 	status: number;
 	message?: string;
 	code?: string;
 };
-
-type ToastType = 'error' | 'warning' | 'none';
 
 type ApiOptions<TBody> = {
 	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -40,22 +38,22 @@ const onRefreshed = (success: boolean) => {
 	refreshSubscribers = [];
 };
 
-const showToast = (type: ToastType, message: string) => {
+const showToastWrapper = (type: ToastType, message: string, code?: string) => {
 	if (type === 'none') return;
+
+	if (code === 'NETWORK_ERROR' && !shouldShowToast('NETWORK_ERROR')) {
+		return;
+	}
+
 	if (type === 'error') {
-		toast.error(message, {
-			duration: 2300, // ms
-		});
+		showToast.error(message);
 	} else if (type === 'warning') {
-		//TODO: Warning 토스트 개선
 		console.warn(`[Warning] ${message}`);
 	}
 };
 
 const onAuthFailure: () => Promise<void> | void = async () => {
-	toast.message('안전한 이용을 위해 다시 한번 로그인해 주세요.', {
-		duration: 3000,
-	});
+	showToast.message('안전한 이용을 위해 다시 한번 로그인해 주세요.');
 	await logout(); //순환참조 괜찮을까?
 };
 
@@ -73,7 +71,7 @@ export async function api<TResponse, TBody = unknown>(
 
 	// 에러를 던지기 전에 토스트를 처리하는 내부 헬퍼
 	const handleError = (status: number, message?: string, code?: string) => {
-		showToast(toastType, getErrorMessage(code, message));
+		showToastWrapper(toastType, getErrorMessage(code, message), code);
 
 		const error: ApiError = {
 			status,
