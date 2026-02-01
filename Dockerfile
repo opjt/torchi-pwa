@@ -9,13 +9,12 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # 의존성 파일만 먼저 복사 (캐싱 최적화)
 COPY package.json pnpm-lock.yaml ./
 
-# 의존성 설치
-RUN pnpm install --frozen-lockfile
+# pnpm 캐시 마운트 사용하여 설치 (빌드 시간 단축)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
-# 소스 코드 복사
+# 소스 코드 복사, 빌드 실행
 COPY . .
-
-# 빌드 실행
 RUN pnpm run build
 
 # Production stage
