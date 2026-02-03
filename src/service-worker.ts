@@ -59,7 +59,7 @@ sw.addEventListener('push', (event) => {
 		body: '내용이 없습니다.',
 		icon: '/logo/icon-192x192.png',
 		badge: '/logo/badge-96x96.png',
-		url: '/', // 기본 URL
+		url: '/app', // 기본 URL
 		tag: 'default-tag',
 		data: {},
 	};
@@ -87,13 +87,13 @@ sw.addEventListener('push', (event) => {
 
 sw.addEventListener('notificationclick', (event) => {
 	event.notification.close();
-	const targetUrl = event.notification.data?.url || '/';
+	const targetUrl = event.notification.data.url;
 
 	event.waitUntil(
 		sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
 			for (const client of clientList) {
 				if (client.url.includes(sw.registration.scope) && 'focus' in client) {
-					return client.focus();
+					return client.navigate(targetUrl).then(() => client.focus());
 				}
 			}
 			if (sw.clients.openWindow) return sw.clients.openWindow(targetUrl);
