@@ -12,6 +12,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set Image Tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -28,6 +31,27 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/torchi-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/torchi-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/torchi-frontend:${{ env.IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # k8s-ssot 저장소 체크아웃
+      - name: Checkout SSOT Repo
+        uses: actions/checkout@v4
+        with:
+          repository: opjt/torchi-infra
+          token: ${{ secrets.GH_PAT }}
+          path: k8s-ssot
+
+      # Kustomize로 이미지 태그 수정
+      - name: Update K8s Manifest
+        run: |
+          cd k8s-ssot/base/frontend
+          kustomize edit set image opjt/torchi-frontend=opjt/torchi-frontend:${{ env.IMAGE_TAG }}
+
+          # Git에 반영
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "deploy: update frontend image to ${{ env.IMAGE_TAG }}"
+          git push
